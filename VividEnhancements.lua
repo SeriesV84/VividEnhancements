@@ -67031,7 +67031,7 @@ function K.Unload()
     K.destroyed = true
     for _, f in ipairs(K.cleanups) do pcall(f) end
     pcall(function() GlobalTrove:Destroy() end)
-    if getgenv().KiciaRebuild == K then getgenv().KiciaRebuild = nil end
+    if getgenv().VividEnhancements == K then getgenv().VividEnhancements = nil end
 end
 
 -- (autoexec fix: game controller modules error when required before the
