@@ -271,7 +271,20 @@ _datCtrl.Get = function(self, key)
         end
         for nm, cos in pairs(_cosLib.Cosmetics) do
             if _isCosType(cos) and not _prx[nm] then
-                _prx[nm] = {Owned = true, Seed = math.random(1, 1000000)}
+                _prx[nm] = {
+                    Owned = true,
+                    Seed = math.random(1, 1000000),
+                    Amount = 1,
+                    Stack = 1,
+                    Count = 1,
+                    Quantity = 1,
+                    Equipped = false,
+                    Favorite = false,
+                    Locked = false,
+                    New = false,
+                    InventoryId = nm .. "_" .. math.random(1000, 9999),
+                    InstanceId = nm .. "_" .. math.random(1000, 9999),
+                }
             end
         end
         return _prx
