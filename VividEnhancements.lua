@@ -66984,7 +66984,7 @@ local bootFn = function()
         tbl17.bI().Notifications))
 
     local reporter = GlobalTrove:Add(tbl17.ad().new())
-    local state = GlobalTrove:Add(tbl17.ae().new("kiciarebuild/rivals"))
+    local state = GlobalTrove:Add(tbl17.ae().new("vividenhancements/rivals"))
     local stateData = state:Load()
     if stateData.AutoLoad and stateData.AutoLoadConfigName ~= nil then
         local r = reporter:ReportResult(store:LoadFromFile(stateData.AutoLoadConfigName))
