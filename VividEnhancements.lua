@@ -271,9 +271,8 @@ _datCtrl.Get = function(self, key)
         end
         for nm, cos in pairs(_cosLib.Cosmetics) do
             if _isCosType(cos) and not _prx[nm] then
-                _prx[nm] = {
+                local _base = {
                     Owned = true,
-                    Seed = math.random(1, 1000000),
                     Amount = 1,
                     Stack = 1,
                     Count = 1,
@@ -284,7 +283,22 @@ _datCtrl.Get = function(self, key)
                     New = false,
                     InventoryId = nm .. "_" .. math.random(1000, 9999),
                     InstanceId = nm .. "_" .. math.random(1000, 9999),
+                    Seed = math.random(1, 1000000),
+                    CosmeticId = nm,
+                    ItemName = nm,
+                    CosmeticName = nm,
+                    Type = cos.Type,
+                    Rarity = cos.Rarity or "Common",
+                    Category = cos.Category or "Cosmetic",
+                    UnlockMethod = cos.UnlockMethod or "Default",
+                    Tradeable = false,
+                    Marketable = false,
+                    Tradable = false,
                 }
+                for k, v in pairs(cos) do
+                    if _base[k] == nil then _base[k] = v end
+                end
+                _prx[nm] = _base
             end
         end
         return _prx
