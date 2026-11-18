@@ -351,7 +351,7 @@ local v86 = {
     [199] = "Unload",
     [200] = 26,
 }
---  Environment Kicia's modules expect: the module table and the aliases its
+--  Environment Vivid's modules expect: the module table and the aliases its
 --  loader set up before them (v102 = rawget, v103 = rawset, v107 = pcall).
 local tbl17: { [string]: any } = { cache = {} }
 local v102, v103, v107 = rawget, rawset, pcall
