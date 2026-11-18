@@ -160,7 +160,7 @@ local C = {
 K.C = C
 
 --==========================================================================
---  Kicia's own UI, settings store and Combat menu (lifted from the dump)
+--  Vivid's own UI, settings store and Combat menu (lifted from the dump)
 --==========================================================================
 local v86 = {
     [2] = "ReactiveStore",
