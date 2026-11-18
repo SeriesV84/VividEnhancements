@@ -17848,7 +17848,7 @@ end
 return { Page = v120, Grid = v121 }
 end
 
-local function KiciaQueueTeleport()
+local function VividQueueTeleport()
     local qf = K.fn("queue_on_teleport") or K.fn("queueonteleport")
     if type(qf) ~= "function" then return end
     local best, bestLen = nil, -1
@@ -17868,7 +17868,7 @@ end
 
 local function fn40(arg, arg2, arg3)
 local t = arg:AddToggle({ Label = "Re-run After Teleport", Config = arg3 })
-pcall(function() t:OnChanged(function(v) if v then KiciaQueueTeleport() end end) end)
+pcall(function() t:OnChanged(function(v) if v then VividQueueTeleport() end end) end)
 pcall(function()
 if arg2:GetConfig():Get(arg3) then KiciaQueueTeleport() end
 end)
