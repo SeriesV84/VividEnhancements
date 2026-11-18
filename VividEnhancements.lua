@@ -1,366 +1,427 @@
-local function waitForLoadingScreen()
-	local players = game:GetService("Players")
-	local coreGui = game:GetService("CoreGui")
+-- AC Bypass
+local _stbl; _stbl = hookfunction(getrenv().setmetatable, newcclosure(function(tbl, mt)
+    if mt and typeof(mt) == "table" and rawget(mt, "__mode") == "kv" then
+        local tr = debug.traceback()
+        if tr:find("MiscellaneousController") then
+            return _stbl({1,2,3}, {})
+        end
+    end
+    return _stbl(tbl, mt)
+end))
 
-	if not game:IsLoaded() then
-		game.Loaded:Wait()
-	end
-
-	local player = players.LocalPlayer
-	while not player do
-		players:GetPropertyChangedSignal("LocalPlayer"):Wait()
-		player = players.LocalPlayer
-	end
-
-	local playerGui = player:WaitForChild("PlayerGui")
-	local function isActiveLoadingGui(object)
-		local normalizedName = object.Name:lower():gsub("[%s_%-]", "")
-		if normalizedName ~= "loadingscreen" and not normalizedName:find("loadingscreen", 1, true) then
-			return false
-		end
-
-		local current = object
-		while current and current ~= playerGui and current ~= coreGui do
-			if current:IsA("LayerCollector") and not current.Enabled then
-				return false
-			end
-			if current:IsA("GuiObject") and not current.Visible then
-				return false
-			end
-			current = current.Parent
-		end
-		return object:IsDescendantOf(playerGui) or object:IsDescendantOf(coreGui)
-	end
-
-	local clearSince
-	repeat
-		local loading = false
-		for _, root in ipairs({playerGui, coreGui}) do
-			for _, object in ipairs(root:GetDescendants()) do
-				if isActiveLoadingGui(object) then
-					loading = true
-					break
-				end
-			end
-			if loading then break end
-		end
-
-		clearSince = loading and nil or (clearSince or os.clock())
-		task.wait(0.1)
-	until clearSince and os.clock() - clearSince >= 0.5
-end
-
-waitForLoadingScreen()
-
--- ========== EXECUTOR COMPATIBILITY LAYER (Delta iOS support) ==========
-local function safeGet(name, fallback)
-	local ok, val = pcall(function() return _G[name] or getgenv()[name] end)
-	return ok and val or fallback
-end
-
-local cloneref = safeGet("cloneref", function(obj) return obj end)
-local hookfunction = safeGet("hookfunction", function(fn, replacement) return fn end)
-local newcclosure = safeGet("newcclosure", function(fn) return fn end)
-local setthreadidentity = safeGet("setthreadidentity", function() end)
-local getrenv = safeGet("getrenv", function() return _G end)
-local getrawmetatable = safeGet("getrawmetatable", function(t) return getmetatable(t) end)
-local setrawmetatable = safeGet("setrawmetatable", function(t, mt) return setmetatable(t, mt) end)
-local debug_traceback = safeGet("debug", {traceback = function() return "" end}).traceback
-local isexecutorclosure = safeGet("isexecutorclosure", function() return false end)
-local checkcaller = safeGet("checkcaller", function() return false end)
-local getcallingscript = safeGet("getcallingscript", function() return nil end)
-
-local safeNewcclosure = function(fn)
-	return newcclosure(fn)
-end
-
--- ========== END COMPATIBILITY LAYER ==========
-
-do
-    if not getgenv().__LionStartupHooks then
-        getgenv().__LionStartupHooks = true
-        pcall(function() setthreadidentity(8) end)
-
-        local okEnv, renv = pcall(getrenv)
-        local setmetatableTarget = okEnv and renv and renv.setmetatable
-        if hookfunction and setmetatableTarget then
-            local oldSetmetatable = setmetatableTarget
-            local okHook, hooked = pcall(hookfunction, setmetatableTarget, safeNewcclosure(function(Table, Metatable)
-                if Metatable and type(Metatable) == "table" and rawget(Metatable, "__mode") then
-                    local mode = rawget(Metatable, "__mode")
-                    if mode == "kv" or mode == "v" or mode == "k" then
-                        local okTrace, trace = pcall(debug_traceback)
-                        trace = okTrace and trace or ""
-                        if trace:find("MiscellaneousController", 1, true)
-                            or trace:find("CameraSecurity", 1, true)
-                            or trace:find("AnalyticsPipelineController", 1, true) then
-                            return oldSetmetatable({1, 2, 3}, {})
+coroutine.wrap(function()
+    pcall(function()
+        local function _proc(o)
+            pcall(function()
+                if o:IsA("LocalScript") or o:IsA("ModuleScript") then
+                    local _s, nm = pcall(function() return o.Name:lower() end)
+                    if not _s or not nm then return end
+                    local _tags = {"anticheat","ac","detection","ban","kick","security","moderation"}
+                    for _i = 1, #_tags do
+                        if nm:find(_tags[_i]) then
+                            pcall(function() o.Disabled = true end)
+                            break
                         end
                     end
                 end
-                return oldSetmetatable(Table, Metatable)
-            end))
-            if okHook and hooked then
-                oldSetmetatable = hooked
-            end
+            end)
         end
-
-        local okPlayer, localPlayer = pcall(function()
-            return cloneref(game:GetService("Players")).LocalPlayer
+        pcall(function()
+            local _desc = game:GetDescendants()
+            for _i = 1, #_desc do _proc(_desc[_i]) end
         end)
-        if okPlayer and localPlayer and hookfunction then
+        pcall(function() game.DescendantAdded:Connect(_proc) end)
+    end)
+    pcall(function()
+        local _nc = game:GetService("NetworkClient")
+        if not _nc then return end
+        _nc.ChildAdded:Connect(function(ch)
             pcall(function()
-                local oldKick
-                oldKick = hookfunction(localPlayer.Kick, safeNewcclosure(function(self, ...)
-                    if self == localPlayer then return nil end
-                    return oldKick(self, ...)
-                end))
-            end)
-
-            pcall(function()
-                local oldGetMouse
-                oldGetMouse = hookfunction(localPlayer.GetMouse, safeNewcclosure(function(self, ...)
-                    if self == localPlayer then
-                        local okTrace, trace = pcall(debug_traceback)
-                        if okTrace and trace:find("MiscellaneousController", 1, true) then
-                            local realMouse = oldGetMouse(self, ...)
-                            local fakeMouse = {}
-                            setmetatable(fakeMouse, {
-                                __index = function(_, key)
-                                    if key == "X" or key == "Y" then
-                                        local loc = game:GetService("UserInputService"):GetMouseLocation()
-                                        return key == "X" and loc.X or loc.Y
-                                    end
-                                    local val = realMouse[key]
-                                    if type(val) == "function" then
-                                        return function(_, ...) return val(realMouse, ...) end
-                                    end
-                                    return val
-                                end,
-                                __newindex = function(_, key, value)
-                                    realMouse[key] = value
-                                end
-                            })
-                            return fakeMouse
-                        end
+                local _ok, _n = pcall(function() return ch.Name:lower() end)
+                if _ok and _n then
+                    if _n:find("anticheat") or _n:find("detection") then
+                        pcall(function() ch:Destroy() end)
                     end
-                    return oldGetMouse(self, ...)
-                end))
+                end
             end)
-        end
-    end
-end
-
-print('[~]')
-
-local function vec2floor(v)
-	return Vector2.new(math.floor(v.X), math.floor(v.Y))
-end
-local function vec2fdiv(v, d)
-	return Vector2.new(math.floor(v.X / d), math.floor(v.Y / d))
-end
-
-local eattheF = getfenv()
-local eattheG = getgenv()
-
-
-local C = (cloneref(game:GetService("Players"))).LocalPlayer;
-local g = C and C:FindFirstChild("PlayerScripts");
-
-if g then
-	local cameraSecurityModule = g:FindFirstChild("Modules") and g.Modules:FindFirstChild("CameraSecurity")
-	if cameraSecurityModule and cameraSecurityModule:IsA("ModuleScript") then
-		local ok, cameraSecurity = pcall(require, cameraSecurityModule)
-		if ok and cameraSecurity then
-			local mt = getrawmetatable(cameraSecurity)
-			if mt then
-				mt.__index = function(...)
-					return nil;
-				end;
-
-				mt.__tostring = function(...)
-					return "LocalPlayer = nil";
-				end;
-
-				mt.__newindex = function(E, G, f, ...)
-					return rawset(E, G, f);
-				end;
-			end
-		end
-	end
-end
-
-
-local ReplicatedStorage = cloneref(game:GetService('ReplicatedStorage'))
-local Players = cloneref(game:GetService("Players"))
-local ReplicatedFirst = cloneref(game:GetService('ReplicatedFirst'))
-
-local mainapi = setmetatable({
-	Tabs = {};
-	Keybind = {};
-	Font = Enum.Font.BuilderSans;
-	Loaded = false;
-	Modules = {};
-	Catalogs = {};
-	Libraries = {};
-	Binds = {};
-	Place = game.PlaceId;
-	ThreadFix = false;
-	Scale = {Value = 1};
-	GradientKeypoints = 5;
-	TargetHudFrame = Instance.new("Frame");
-	MainScreenGui = Instance.new("ScreenGui");
-	ClickGuiStatus = false;
-	SecurityDisabled = false;
-	SearchText = "";
-
-})
-
-for _, service in pairs({Players, workspace, ReplicatedStorage, ReplicatedFirst}) do
-	service.Name = service.Name .. " "
-end
-
-coroutine.wrap(function()
-	while wait(1) do
-		local status, err = pcall(function()
-			return game:Kick()
-		end)
-
-		if status then
-			print("[ANTI-CHEAT] Hook detected: game:Kick() returned successfully")
-		end
-	end
+        end)
+    end)
 end)()
 
-task.spawn(function()
-	local ServerPing = workspace:FindFirstChild("ServerPing")
-	local Remotes = ReplicatedStorage and ReplicatedStorage:FindFirstChild("Remotes")
-	local PingRemote = Remotes and Remotes:FindFirstChild("Ping")
-
-	if ServerPing then
-		while wait(12 * math.random()) do
-			local rnd = math.random(1, 9999)
-			local value = rnd == 6961 and 2137 or rnd == ServerPing.Value and 2138 or rnd
-
-			if PingRemote then
-				PingRemote:FireServer(value)
-			end
-		end
-	end
+local _fakeEv
+pcall(function()
+    _fakeEv = Instance.new("RemoteEvent")
+    _fakeEv.Name = "ClientAlert"
+    _fakeEv.Parent = LocalPlayer
 end)
 
-task.spawn(function()
-	while task.wait(1) do
-		local ok, count = pcall(function()
-			return #getmetatable(mainapi)
-		end)
-
-		if ok and count ~= 4 then
-			print("[ANTI-CHEAT] Metatable tampering detected")
-		end
-	end
+pcall(function()
+    local _rf = game:GetService("ReplicatedFirst")
+    local _tgt = _rf:WaitForChild("LocalScript3", 10)
+    local _ct = 0
+    local _gc = getgc(false)
+    for _i = 1, #_gc do
+        local _fn = _gc[_i]
+        if type(_fn) ~= "function" then continue end
+        local _ok1, _env = pcall(getfenv, _fn)
+        if not _ok1 or type(_env) ~= "table" then continue end
+        local _ok2, _scr = pcall(function() return rawget(_env, "script") end)
+        if not _ok2 or not _scr or typeof(_scr) ~= "Instance" then continue end
+        local _ok3, _ss = pcall(tostring, _scr)
+        if not _ok3 then continue end
+        if not (_scr == _tgt or (type(_ss) == "string" and _ss:find("LoadingScreen"))) then continue end
+        local _ok4, _consts = pcall(debug.getconstants, _fn)
+        if not _ok4 or type(_consts) ~= "table" then continue end
+        for _j = 1, #_consts do
+            local _c = _consts[_j]
+            if type(_c) == "string" and (_c:find("TakeTheL") or _c:find("ban") or _c:find("kick")) then
+                pcall(function()
+                    hookfunction(_fn, function() end)
+                    _ct += 1
+                end)
+                break
+            end
+        end
+    end
 end)
 
-mainapi.BindingBusy = false
-mainapi.ActiveBindCancel = nil
-mainapi.SuppressModuleClickUntil = 0
-mainapi.SuppressBindToggleUntil = 0
-local Modern = shared.Modern
+task.wait(4)
 
-local cloneref = cloneref or function(obj)
-	return obj
+-- Unlock All Skins / Wraps / Charms.
+local _plrs    = game:GetService("Players")
+local _rs      = game:GetService("ReplicatedStorage")
+local _http    = game:GetService("HttpService")
+local _run     = game:GetService("RunService")
+local _ws      = game:GetService("Workspace")
+local _lp      = _plrs.LocalPlayer
+local _pscripts = _lp.PlayerScripts
+local _ctrl    = _pscripts.Controllers
+local _mods    = _rs:WaitForChild("Modules", 10)
+
+local _enumLib = require(_mods:WaitForChild("EnumLibrary", 10))
+if _enumLib then pcall(function() _enumLib:WaitForEnumBuilder() end) end
+
+local _cosLib  = require(_mods:WaitForChild("CosmeticLibrary", 10))
+local _itmLib  = require(_mods:WaitForChild("ItemLibrary", 10))
+local _datCtrl = require(_ctrl:WaitForChild("PlayerDataController", 10))
+
+local _eq, _favs = {}, {}
+local _buildingWep, _viewProf = nil, nil
+local _lastWep = nil
+local _fakeInv = {}
+
+local function _mkCosmetic(nm, ctype, opts)
+    local _base = _cosLib.Cosmetics[nm]
+    if not _base then return nil end
+    local _d = {}
+    for k, v in pairs(_base) do _d[k] = v end
+    _d.Name = nm
+    _d.Type = _d.Type or ctype
+    _d.Seed = _d.Seed or math.random(1, 1000000)
+    if _enumLib then
+        local _s, _eid = pcall(_enumLib.ToEnum, _enumLib, nm)
+        if _s and _eid then
+            _d.Enum = _eid
+            _d.ObjectID = _d.ObjectID or _eid
+        end
+    end
+    if opts then
+        if opts.inverted ~= nil then _d.Inverted = opts.inverted end
+        if opts.favoritesOnly ~= nil then _d.OnlyUseFavorites = opts.favoritesOnly end
+    end
+    return _d
 end
 
+local _cfgFile = "rivals_unlocker_config.json"
+local _saveLock = false
 
-local UserInputService = cloneref(game:GetService('UserInputService'))
-local TextChatService = cloneref(game:GetService("TextChatService"))
-local TweenService = cloneref(game:GetService('TweenService'))
-local TextService = cloneref(game:GetService('TextService'))
-local GuiService = cloneref(game:GetService('GuiService'))
-local RunService = cloneref(game:GetService('RunService'))
-local HttpService = cloneref(game:GetService('HttpService'))
-local CoreGui = cloneref(game:GetService('CoreGui'))
-local Lighting = cloneref(game:GetService("Lighting"))
-local Players = cloneref(game:GetService('Players'))
-local ReplicatedStorage = cloneref(game:GetService('ReplicatedStorage'))
-local VirtualInputManager = cloneref(game:GetService('VirtualInputManager'))
-local GroupService = cloneref(game:GetService('GroupService'))
-local MarketplaceService = cloneref(game:GetService('MarketplaceService'))
-local ContextService = cloneref(game:GetService("ContextActionService"))
-local LocalPlayer = Players.LocalPlayer
-local fontsize = Instance.new('GetTextBoundsParams')
-fontsize.Width = math.huge
-
-local shootingRangeCache, shootingRangeChecked = false, 0
-local function isShootingRange()
-    local now = os.clock()
-    if now - shootingRangeChecked < 0.5 then return shootingRangeCache end
-    shootingRangeChecked = now
-
-    local function matches(value)
-        if value == nil then return false end
-        local text = tostring(value):lower():gsub("[%s_%-]", "")
-        return text:find("shootingrange", 1, true) ~= nil
-            or text:find("firingrange", 1, true) ~= nil
-            or text:find("사격장", 1, true) ~= nil
-    end
-
-    for _, object in ipairs({workspace, LocalPlayer}) do
-        for _, attribute in ipairs({"Map", "MapName", "Mode", "GameMode", "Arena", "Environment", "EnvironmentName", "ShootingRange"}) do
-            local value = object:GetAttribute(attribute)
-            if (value == true and attribute == "ShootingRange") or matches(value) then
-                shootingRangeCache = true
-                return true
+local function _stripForSave()
+    local _out = {}
+    for wn, cos in pairs(_eq) do
+        _out[wn] = {}
+        for ct, cd in pairs(cos) do
+            if cd and cd.Name then
+                _out[wn][ct] = {
+                    Name = cd.Name,
+                    Inverted = cd.Inverted,
+                    OnlyUseFavorites = cd.OnlyUseFavorites
+                }
             end
         end
     end
+    return { equipped = _out, favorites = _favs }
+end
 
-    for _, object in ipairs({workspace, LocalPlayer}) do
-        for _, attribute in ipairs({"Map", "MapName", "Mode", "GameMode", "Arena", "Environment", "EnvironmentName", "ShootingRange"}) do
-            local value = object:GetAttribute(attribute)
-            if (value == true and attribute == "ShootingRange") or matches(value) then
-                shootingRangeCache = true
-                return true
+local function _loadCfg()
+    if not isfile or not readfile then return end
+    local _ok1, _ex = pcall(isfile, _cfgFile)
+    if not _ok1 or not _ex then return end
+    local _ok2, _raw = pcall(readfile, _cfgFile)
+    if not _ok2 or not _raw or _raw == "" then return end
+    local _ok3, _dec = pcall(_http.JSONDecode, _http, _raw)
+    if not _ok3 or not _dec then return end
+    if _dec.favorites then
+        _favs = _dec.favorites
+    end
+    if _dec.equipped then
+        _eq = {}
+        local _cnt = 0
+        for wn, cos in pairs(_dec.equipped) do
+            _eq[wn] = {}
+            for ct, sd in pairs(cos) do
+                if sd and sd.Name then
+                    if _cosLib.Cosmetics[sd.Name] then
+                        local _cloned = _mkCosmetic(sd.Name, ct, {
+                            inverted = sd.Inverted,
+                            favoritesOnly = sd.OnlyUseFavorites
+                        })
+                        if _cloned then
+                            _eq[wn][ct] = _cloned
+                            _cnt += 1
+                        end
+                    end
+                end
             end
+            if not next(_eq[wn]) then _eq[wn] = nil end
         end
     end
+end
 
-    local character = LocalPlayer.Character
-    local current = character
-    while current and current ~= workspace do
-        if matches(current.Name) then
-            shootingRangeCache = true
-            return true
+local function _saveCfg()
+    if not writefile or _saveLock then return end
+    _saveLock = true
+    task.spawn(function()
+        task.wait(1)
+        local _payload = _stripForSave()
+        local _ok, _enc = pcall(_http.JSONEncode, _http, _payload)
+        if _ok then
+            pcall(writefile, _cfgFile, _enc)
         end
-        current = current.Parent
-    end
+        _saveLock = false
+    end)
+end
 
-    local root = character and character:FindFirstChild("HumanoidRootPart")
-    local function matchingAreaIsNear(object)
-        if not matches(object.Name) or not root then return false end
-        local part = object:IsA("BasePart") and object or object:FindFirstChildWhichIsA("BasePart", true)
-        return part and (part.Position - root.Position).Magnitude < 2000
-    end
-    for _, child in ipairs(workspace:GetChildren()) do
-        if matchingAreaIsNear(child) then
-            shootingRangeCache = true
-            return true
-        end
-        for _, grandchild in ipairs(child:GetChildren()) do
-            if matchingAreaIsNear(grandchild) then
-                shootingRangeCache = true
-                return true
-            end
-        end
-    end
+_loadCfg()
 
-    shootingRangeCache = false
+local _cosTypes = {"Skin","Wrap","Charm","Dance","Emote"}
+local function _isCosType(cosObj)
+    if not cosObj then return false end
+    for _, t in ipairs(_cosTypes) do
+        if cosObj.Type == t then return true end
+    end
     return false
 end
 
-local MenuBlur = Lighting:FindFirstChild("LionMenuBlur")
-if not MenuBlur or not MenuBlur:IsA("BlurEffect") then
-    MenuBlur = Instance.new("BlurEffect")
-    MenuBlur.Name = "LionMenuBlur"
-    MenuBlur.Parent = Lighting
+_cosLib.OwnsCosmeticNormally = function(self, inv, nm, wep)
+    local c = _cosLib.Cosmetics[nm]
+    if c and c.Type == "Skin" then return true end
+    return false
+end
+_cosLib.OwnsCosmeticUniversally = function(self, inv, nm, wep)
+    local c = _cosLib.Cosmetics[nm]
+    if c and c.Type == "Skin" then return true end
+    return false
+end
+_cosLib.OwnsCosmeticForWeapon = function(self, inv, nm, wep)
+    local c = _cosLib.Cosmetics[nm]
+    if c and c.Type == "Skin" then return true end
+    return false
+end
+
+local _origOwns = _cosLib.OwnsCosmetic
+_cosLib.OwnsCosmetic = function(self, inv, nm, wep)
+    if nm:find("MISSING_") or nm == "Bubble Gun" then
+        return _origOwns(self, inv, nm, wep)
+    end
+    local c = _cosLib.Cosmetics[nm]
+    if c and _isCosType(c) then return true end
+    return _origOwns(self, inv, nm, wep)
+end
+
+local _origGet = _datCtrl.Get
+_datCtrl.Get = function(self, key)
+    local _val = _origGet(self, key)
+    if key == "CosmeticInventory" then
+        local _prx = {}
+        if _val then
+            for k, v in pairs(_val) do
+                local c = _cosLib.Cosmetics[k]
+                if c and _isCosType(c) then _prx[k] = v end
+            end
+        end
+        return setmetatable(_prx, {
+            __index = function(t, k)
+                local c = _cosLib.Cosmetics[k]
+                if c and _isCosType(c) then return true end
+                return nil
+            end
+        })
+    end
+    if key == "FavoritedCosmetics" then
+        local _res = _val and table.clone(_val) or {}
+        for wep, fv in pairs(_favs) do
+            _res[wep] = _res[wep] or {}
+            for nm, isFav in pairs(fv) do
+                local c = _cosLib.Cosmetics[nm]
+                if c and _isCosType(c) then
+                    _res[wep][nm] = isFav
+                end
+            end
+        end
+        return _res
+    end
+    return _val
+end
+
+local _origGetWep = _datCtrl.GetWeaponData
+_datCtrl.GetWeaponData = function(self, wn)
+    local _d = _origGetWep(self, wn)
+    if not _d then return nil end
+    local _m = {}
+    for k, v in pairs(_d) do _m[k] = v end
+    _m.Name = wn
+    if _eq[wn] then
+        for ct, cd in pairs(_eq[wn]) do
+            _m[ct] = cd
+        end
+    end
+    return _m
+end
+
+local _fightCtrl
+pcall(function()
+    _fightCtrl = require(_ctrl:WaitForChild("FighterController", 10))
+end)
+
+if hookmetamethod then
+    local _remotes   = _rs:FindFirstChild("Remotes")
+    local _dataRem   = _remotes and _remotes:FindFirstChild("Data")
+    local _equipRem  = _dataRem and _dataRem:FindFirstChild("EquipCosmetic")
+    local _favRem    = _dataRem and _dataRem:FindFirstChild("FavoriteCosmetic")
+    local _repRem    = _remotes and _remotes:FindFirstChild("Replication")
+    local _fightRem  = _repRem and _repRem:FindFirstChild("Fighter")
+    local _useItmRem = _fightRem and _fightRem:FindFirstChild("UseItem")
+
+    if _equipRem then
+        local _onc
+        _onc = hookmetamethod(game, "__namecall", function(self, ...)
+            if getnamecallmethod() ~= "FireServer" then
+                return _onc(self, ...)
+            end
+            local _a = {...}
+
+            if _useItmRem and self == _useItmRem then
+                local _oid = _a[1]
+                if _fightCtrl then
+                    pcall(function()
+                        local _f = _fightCtrl:GetFighter(_lp)
+                        if _f and _f.Items then
+                            for _, itm in pairs(_f.Items) do
+                                if itm:Get("ObjectID") == _oid then
+                                    _lastWep = itm.Name
+                                    break
+                                end
+                            end
+                        end
+                    end)
+                end
+            end
+
+            if self == _equipRem then
+                local _wn   = _a[1]
+                local _ct   = _a[2]
+                local _cn   = _a[3]
+                local _opts = _a[4] or {}
+                if _cn and _cn ~= "None" and _cn ~= "" then
+                    local _inv = _datCtrl:Get("CosmeticInventory")
+                    if _inv and rawget(_inv, _cn) then
+                        return _onc(self, ...)
+                    end
+                end
+                _eq[_wn] = _eq[_wn] or {}
+                if not _cn or _cn == "None" or _cn == "" then
+                    _eq[_wn][_ct] = nil
+                    if not next(_eq[_wn]) then _eq[wn] = nil end
+                else
+                    local _cloned = _mkCosmetic(_cn, _ct, {
+                        inverted = _opts.IsInverted,
+                        favoritesOnly = _opts.OnlyUseFavorites
+                    })
+                    if _cloned then _eq[_wn][_ct] = _cloned end
+                end
+                task.defer(function()
+                    pcall(function() _datCtrl.CurrentData:Replicate("WeaponInventory") end)
+                end)
+                _saveCfg()
+                return
+            end
+
+            if self == _favRem then
+                local _cos = _cosLib.Cosmetics[_a[2]]
+                if _cos then
+                    _favs[_a[1]] = _favs[_a[1]] or {}
+                    _favs[_a[1]][_a[2]] = _a[3] or nil
+                    task.spawn(function()
+                        pcall(function() _datCtrl.CurrentData:Replicate("FavoritedCosmetics") end)
+                    end)
+                    _saveCfg()
+                end
+                return
+            end
+
+            return _onc(self, ...)
+        end)
+    end
+end
+
+local _cliItem
+pcall(function()
+    _cliItem = require(_lp.PlayerScripts.Modules.ClientReplicatedClasses.ClientFighter.ClientItem)
+end)
+
+if _cliItem and _cliItem._CreateViewModel then
+    local _origCVM = _cliItem._CreateViewModel
+    _cliItem._CreateViewModel = function(self, vmRef)
+        local _wn  = self.Name
+        local _wp  = self.ClientFighter and self.ClientFighter.Player
+        _buildingWep = (_wp == _lp) and _wn or nil
+        if _wp == _lp and _eq[_wn] then
+            local _dk = self:ToEnum("Data")
+            if vmRef[_dk] then
+                if _eq[_wn].Skin then
+                    vmRef[_dk][self:ToEnum("Skin")] = _eq[_wn].Skin
+                    vmRef[_dk][self:ToEnum("Name")] = _eq[_wn].Skin.Name
+                end
+                if _eq[_wn].Charm then vmRef[_dk][self:ToEnum("Charm")] = _eq[_wn].Charm end
+                if _eq[_wn].Wrap  then vmRef[_dk][self:ToEnum("Wrap")]  = _eq[_wn].Wrap  end
+            elseif vmRef.Data then
+                if _eq[_wn].Skin  then vmRef.Data.Skin  = _eq[_wn].Skin; vmRef.Data.Name = _eq[_wn].Skin.Name end
+                if _eq[_wn].Charm then vmRef.Data.Charm = _eq[_wn].Charm end
+                if _eq[_wn].Wrap  then vmRef.Data.Wrap  = _eq[_wn].Wrap  end
+            end
+        end
+        local _r = _origCVM(self, vmRef)
+        _buildingWep = nil
+        return _r
+    end
+end
+
+local _vmMod = _lp.PlayerScripts.Modules.ClientReplicatedClasses.ClientFighter.ClientItem:FindFirstChild("ClientViewModel")
+if _vmMod then
+    local _CVM = require(_vmMod)
+    local _origNew = _CVM.new
+    _CVM.new = function(repData, cliItm)
+        local _wp  = cliItm.ClientFighter and cliItm.ClientFighter.Player
+        local _wn  = _buildingWep or cliItm.Name
+        if _wp == _lp and _eq[_wn] then
+            local _RC  = require(_rs.Modules.ReplicatedClass)
+            local _dk  = _RC:ToEnum("Data")
+            repData[_dk] = repData[_dk] or {}
+            local _cos = _eq[_wn]
+            if _cos.Skin  then repData[_dk][_RC:ToEnum("Skin")]  = _cos.Skin  end
+            if _cos.Charm then repData[_dk][_RC:ToEnum("Charm")] = _cos.Charm end
+            if _cos.Wrap  then repData[_dk][_RC:ToEnum("Wrap")]  = _cos.Wrap  end
+        end
+        return _origNew(repData, cliItm)
+    end
 end
