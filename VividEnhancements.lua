@@ -66969,10 +66969,10 @@ do
     end
 end
 
---  Kicia's error reporter needs a sink; ours prints to the F9 console.
+--  Vivid Enhancements error reporter needs a sink; ours prints to the F9 console.
 tbl17.b().use({ Report = function(_, e)
     local detail = type(e) == "table" and (e.Detail or e.Operation) or e
-    warn("[Kicia Rebuild] " .. tostring(detail))
+    warn("[Vivid Enhancements | Dev Build] " .. tostring(detail))
 end })
 
 local bootFn = function()
