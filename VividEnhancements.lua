@@ -48,21 +48,14 @@ local isMobile = UserInputService.TouchEnabled and not UserInputService.Keyboard
 local screenSize = workspace.CurrentCamera.ViewportSize
 local isSmallScreen = screenSize.X < 600 or screenSize.Y < 800
 
-print("[VividEnhancements] Starting...")
-print("[VividEnhancements] isMobile:", isMobile, "TouchEnabled:", UserInputService.TouchEnabled, "KeyboardEnabled:", UserInputService.KeyboardEnabled)
-print("[VividEnhancements] screenSize:", screenSize.X, "x", screenSize.Y)
-print("[VividEnhancements] isSmallScreen:", isSmallScreen)
-
 VividEnhancements.Name = "VividEnhancements"
 VividEnhancements.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 VividEnhancements.ResetOnSpawn = false
 VividEnhancements.IgnoreGuiInset = true
 VividEnhancements.DisplayOrder = 999999
 
-local frameWidth = isSmallScreen and screenSize.X - 20 or (isMobile and math.min(980, screenSize.X - 20) or 980)
-local frameHeight = isSmallScreen and screenSize.Y - 20 or (isMobile and math.min(720, screenSize.Y - 20) or 720)
-
-print("[VividEnhancements] frameSize:", frameWidth, "x", frameHeight)
+local frameWidth = isSmallScreen and screenSize.X - 10 or (isMobile and math.min(800, screenSize.X - 10) or 800)
+local frameHeight = isSmallScreen and screenSize.Y - 10 or (isMobile and math.min(600, screenSize.Y - 10) or 600)
 
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = VividEnhancements
@@ -75,65 +68,63 @@ MainFrame.Visible = true
 MainFrame.Active = true
 MainFrame.Draggable = true
 
-print("[VividEnhancements] MainFrame created, Visible:", MainFrame.Visible, "Parent:", MainFrame.Parent and MainFrame.Parent.Name or "nil")
-
-UICorner.CornerRadius = UDim.new(0, isMobile and 14 or 10)
+UICorner.CornerRadius = UDim.new(0, isMobile and 12 or 10)
 UICorner.Parent = MainFrame
 
 TopBar.Name = "TopBar"
 TopBar.Parent = MainFrame
 TopBar.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
 TopBar.BorderSizePixel = 0
-TopBar.Size = UDim2.new(1, 0, 0, isMobile and 52 or 48)
+TopBar.Size = UDim2.new(1, 0, 0, isMobile and 44 or 40)
 
-UICorner_2.CornerRadius = UDim.new(0, isMobile and 14 or 10)
+UICorner_2.CornerRadius = UDim.new(0, isMobile and 12 or 10)
 UICorner_2.Parent = TopBar
 
 Title.Name = "Title"
 Title.Parent = TopBar
 Title.BackgroundTransparency = 1
-Title.Position = UDim2.new(0, 16, 0, 0)
-Title.Size = UDim2.new(1, -120, 1, 0)
+Title.Position = UDim2.new(0, 12, 0, 0)
+Title.Size = UDim2.new(1, -100, 1, 0)
 Title.Font = Enum.Font.GothamBold
 Title.Text = "Vivid Enhancements"
 Title.TextColor3 = Color3.fromRGB(255, 215, 0)
-Title.TextSize = isMobile and 18 or 16
+Title.TextSize = isMobile and 16 or 14
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
 MinimizeBtn.Name = "MinimizeBtn"
 MinimizeBtn.Parent = TopBar
 MinimizeBtn.AnchorPoint = Vector2.new(1, 0.5)
 MinimizeBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MinimizeBtn.Position = UDim2.new(1, -60, 0.5, 0)
-MinimizeBtn.Size = UDim2.new(0, 36, 0, 36)
+MinimizeBtn.Position = UDim2.new(1, -52, 0.5, 0)
+MinimizeBtn.Size = UDim2.new(0, 30, 0, 30)
 MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.Text = "—"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
-MinimizeBtn.TextSize = isMobile and 22 or 18
+MinimizeBtn.TextSize = isMobile and 20 or 16
 
-UICorner_3.CornerRadius = UDim.new(0, 8)
+UICorner_3.CornerRadius = UDim.new(0, 6)
 UICorner_3.Parent = MinimizeBtn
 
 CloseBtn.Name = "CloseBtn"
 CloseBtn.Parent = TopBar
 CloseBtn.AnchorPoint = Vector2.new(1, 0.5)
 CloseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-CloseBtn.Position = UDim2.new(1, -16, 0.5, 0)
-CloseBtn.Size = UDim2.new(0, 36, 0, 36)
+CloseBtn.Position = UDim2.new(1, -12, 0.5, 0)
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.Text = "×"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 51, 51)
-CloseBtn.TextSize = isMobile and 24 or 20
+CloseBtn.TextSize = isMobile and 22 or 18
 
-UICorner_4.CornerRadius = UDim.new(0, 8)
+UICorner_4.CornerRadius = UDim.new(0, 6)
 UICorner_4.Parent = CloseBtn
 
 TabsFrame.Name = "TabsFrame"
 TabsFrame.Parent = MainFrame
 TabsFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 TabsFrame.BorderSizePixel = 0
-TabsFrame.Position = UDim2.new(0, 0, 0, isMobile and 52 or 48)
-TabsFrame.Size = UDim2.new(1, 0, 0, isMobile and 50 or 44)
+TabsFrame.Position = UDim2.new(0, 0, 0, isMobile and 44 or 40)
+TabsFrame.Size = UDim2.new(1, 0, 0, isMobile and 42 or 38)
 
 UICorner_5.CornerRadius = UDim.new(0, 0)
 UICorner_5.Parent = TabsFrame
@@ -145,52 +136,52 @@ TabButtons.Size = UDim2.new(1, 0, 1, 0)
 
 UIListLayout.Parent = TabButtons
 UIListLayout.FillDirection = Enum.FillDirection.Horizontal
-UIListLayout.Padding = UDim.new(0, isMobile and 6 or 4)
+UIListLayout.Padding = UDim.new(0, isMobile and 4 or 3)
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-local tabWidth = isSmallScreen and (frameWidth / 3 - 8) or (isMobile and 140 or 120)
+local tabWidth = isSmallScreen and (frameWidth / 3 - 6) or (isMobile and 110 or 95)
 
 EditorTab.Name = "EditorTab"
 EditorTab.Parent = TabButtons
 EditorTab.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
-EditorTab.Size = UDim2.new(0, tabWidth, 1, -8)
+EditorTab.Size = UDim2.new(0, tabWidth, 1, -6)
 EditorTab.Font = Enum.Font.GothamBold
 EditorTab.Text = "EDITOR"
 EditorTab.TextColor3 = Color3.fromRGB(0, 0, 0)
-EditorTab.TextSize = isMobile and 13 or 12
+EditorTab.TextSize = isMobile and 11 or 10
 
-UICorner_6.CornerRadius = UDim.new(0, 8)
+UICorner_6.CornerRadius = UDim.new(0, 6)
 UICorner_6.Parent = EditorTab
 
 ScriptsTab.Name = "ScriptsTab"
 ScriptsTab.Parent = TabButtons
 ScriptsTab.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ScriptsTab.Size = UDim2.new(0, tabWidth, 1, -8)
+ScriptsTab.Size = UDim2.new(0, tabWidth, 1, -6)
 ScriptsTab.Font = Enum.Font.GothamBold
 ScriptsTab.Text = "SCRIPTS"
 ScriptsTab.TextColor3 = Color3.fromRGB(170, 170, 170)
-ScriptsTab.TextSize = isMobile and 13 or 12
+ScriptsTab.TextSize = isMobile and 11 or 10
 
-UICorner_7.CornerRadius = UDim.new(0, 8)
+UICorner_7.CornerRadius = UDim.new(0, 6)
 UICorner_7.Parent = ScriptsTab
 
 SettingsTab.Name = "SettingsTab"
 SettingsTab.Parent = TabButtons
 SettingsTab.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-SettingsTab.Size = UDim2.new(0, tabWidth, 1, -8)
+SettingsTab.Size = UDim2.new(0, tabWidth, 1, -6)
 SettingsTab.Font = Enum.Font.GothamBold
 SettingsTab.Text = "SETTINGS"
 SettingsTab.TextColor3 = Color3.fromRGB(170, 170, 170)
-SettingsTab.TextSize = isMobile and 13 or 12
+SettingsTab.TextSize = isMobile and 11 or 10
 
-UICorner_8.CornerRadius = UDim.new(0, 8)
+UICorner_8.CornerRadius = UDim.new(0, 6)
 UICorner_8.Parent = SettingsTab
 
 PanelsFrame.Name = "PanelsFrame"
 PanelsFrame.Parent = MainFrame
 PanelsFrame.BackgroundTransparency = 1
-PanelsFrame.Position = UDim2.new(0, 0, 0, (isMobile and 52 or 48) + (isMobile and 50 or 44))
-PanelsFrame.Size = UDim2.new(1, 0, 1, -((isMobile and 52 or 48) + (isMobile and 50 or 44)))
+PanelsFrame.Position = UDim2.new(0, 0, 0, (isMobile and 44 or 40) + (isMobile and 42 or 38))
+PanelsFrame.Size = UDim2.new(1, 0, 1, -((isMobile and 44 or 40) + (isMobile and 42 or 38)))
 
 EditorPanel.Name = "EditorPanel"
 EditorPanel.Parent = PanelsFrame
@@ -202,23 +193,23 @@ EditorScroll.Name = "EditorScroll"
 EditorScroll.Parent = EditorPanel
 EditorScroll.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 EditorScroll.BorderSizePixel = 0
-EditorScroll.Position = UDim2.new(0, isMobile and 12 or 16, 0, isMobile and 12 or 16)
-EditorScroll.Size = UDim2.new(1, -(isMobile and 24 or 32), 1, -(isMobile and 100 or 90))
+EditorScroll.Position = UDim2.new(0, isMobile and 8 or 10, 0, isMobile and 8 or 10)
+EditorScroll.Size = UDim2.new(1, -(isMobile and 16 or 20), 1, -(isMobile and 80 or 70))
 EditorScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-EditorScroll.ScrollBarThickness = isMobile and 8 or 6
+EditorScroll.ScrollBarThickness = isMobile and 6 or 4
 EditorScroll.ScrollBarImageColor3 = Color3.fromRGB(255, 215, 0)
 
 CodeEditor.Name = "CodeEditor"
 CodeEditor.Parent = EditorScroll
 CodeEditor.BackgroundTransparency = 1
-CodeEditor.Position = UDim2.new(0, isMobile and 44 or 50, 0, 0)
-CodeEditor.Size = UDim2.new(1, -(isMobile and 44 or 50), 1, 0)
+CodeEditor.Position = UDim2.new(0, isMobile and 38 or 44, 0, 0)
+CodeEditor.Size = UDim2.new(1, -(isMobile and 38 or 44), 1, 0)
 CodeEditor.ClearTextOnFocus = false
 CodeEditor.Font = Enum.Font.Code
 CodeEditor.MultiLine = true
 CodeEditor.Text = "-- Vivid Enhancements Executor\n-- Type your script here...\n\nprint('Hello from Vivid Enhancements!')"
 CodeEditor.TextColor3 = Color3.fromRGB(255, 255, 255)
-CodeEditor.TextSize = isMobile and 15 or 14
+CodeEditor.TextSize = isMobile and 13 or 12
 CodeEditor.TextXAlignment = Enum.TextXAlignment.Left
 CodeEditor.TextYAlignment = Enum.TextYAlignment.Top
 CodeEditor.TextWrapped = false
@@ -227,53 +218,53 @@ LineNumbers.Name = "LineNumbers"
 LineNumbers.Parent = EditorScroll
 LineNumbers.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
 LineNumbers.BorderSizePixel = 0
-LineNumbers.Size = UDim2.new(0, isMobile and 44 or 50, 1, 0)
+LineNumbers.Size = UDim2.new(0, isMobile and 38 or 44, 1, 0)
 LineNumbers.Font = Enum.Font.Code
 LineNumbers.Text = "1"
 LineNumbers.TextColor3 = Color3.fromRGB(100, 100, 100)
-LineNumbers.TextSize = isMobile and 15 or 14
+LineNumbers.TextSize = isMobile and 13 or 12
 LineNumbers.TextYAlignment = Enum.TextYAlignment.Top
 
 ExecuteBtn.Name = "ExecuteBtn"
 ExecuteBtn.Parent = EditorPanel
 ExecuteBtn.AnchorPoint = Vector2.new(1, 1)
 ExecuteBtn.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
-ExecuteBtn.Position = UDim2.new(1, -(isMobile and 12 or 16), 1, -(isMobile and 12 or 16))
-ExecuteBtn.Size = UDim2.new(0, isMobile and 130 or 120, 0, isMobile and 48 or 40)
+ExecuteBtn.Position = UDim2.new(1, -(isMobile and 8 or 10), 1, -(isMobile and 8 or 10))
+ExecuteBtn.Size = UDim2.new(0, isMobile and 100 or 90, 0, isMobile and 38 or 34)
 ExecuteBtn.Font = Enum.Font.GothamBold
 ExecuteBtn.Text = "EXECUTE"
 ExecuteBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
-ExecuteBtn.TextSize = isMobile and 15 or 14
+ExecuteBtn.TextSize = isMobile and 13 or 12
 
-UICorner_9.CornerRadius = UDim.new(0, 8)
+UICorner_9.CornerRadius = UDim.new(0, 6)
 UICorner_9.Parent = ExecuteBtn
 
 ClearBtn.Name = "ClearBtn"
 ClearBtn.Parent = EditorPanel
 ClearBtn.AnchorPoint = Vector2.new(1, 1)
 ClearBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ClearBtn.Position = UDim2.new(1, -(isMobile and 152 or 152), 1, -(isMobile and 12 or 16))
-ClearBtn.Size = UDim2.new(0, isMobile and 130 or 120, 0, isMobile and 48 or 40)
+ClearBtn.Position = UDim2.new(1, -(isMobile and 118 or 110), 1, -(isMobile and 8 or 10))
+ClearBtn.Size = UDim2.new(0, isMobile and 100 or 90, 0, isMobile and 38 or 34)
 ClearBtn.Font = Enum.Font.GothamBold
 ClearBtn.Text = "CLEAR"
 ClearBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ClearBtn.TextSize = isMobile and 15 or 14
+ClearBtn.TextSize = isMobile and 13 or 12
 
-UICorner_10.CornerRadius = UDim.new(0, 8)
+UICorner_10.CornerRadius = UDim.new(0, 6)
 UICorner_10.Parent = ClearBtn
 
 FormatBtn.Name = "FormatBtn"
 FormatBtn.Parent = EditorPanel
 FormatBtn.AnchorPoint = Vector2.new(1, 1)
 FormatBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-FormatBtn.Position = UDim2.new(1, -(isMobile and 292 or 288), 1, -(isMobile and 12 or 16))
-FormatBtn.Size = UDim2.new(0, isMobile and 130 or 120, 0, isMobile and 48 or 40)
+FormatBtn.Position = UDim2.new(1, -(isMobile and 228 or 210), 1, -(isMobile and 8 or 10))
+FormatBtn.Size = UDim2.new(0, isMobile and 100 or 90, 0, isMobile and 38 or 34)
 FormatBtn.Font = Enum.Font.GothamBold
 FormatBtn.Text = "FORMAT"
 FormatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-FormatBtn.TextSize = isMobile and 15 or 14
+FormatBtn.TextSize = isMobile and 13 or 12
 
-UICorner_11.CornerRadius = UDim.new(0, 8)
+UICorner_11.CornerRadius = UDim.new(0, 6)
 UICorner_11.Parent = FormatBtn
 
 ScriptsPanel.Name = "ScriptsPanel"
@@ -287,11 +278,11 @@ ScriptsScroll.Parent = ScriptsPanel
 ScriptsScroll.BackgroundTransparency = 1
 ScriptsScroll.Size = UDim2.new(1, 0, 1, 0)
 ScriptsScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-ScriptsScroll.ScrollBarThickness = isMobile and 8 or 6
+ScriptsScroll.ScrollBarThickness = isMobile and 6 or 4
 ScriptsScroll.ScrollBarImageColor3 = Color3.fromRGB(255, 215, 0)
 
 UIListLayout_2.Parent = ScriptsScroll
-UIListLayout_2.Padding = UDim.new(0, isMobile and 12 or 10)
+UIListLayout_2.Padding = UDim.new(0, isMobile and 8 or 6)
 UIListLayout_2.SortOrder = Enum.SortOrder.LayoutOrder
 
 SettingsPanel.Name = "SettingsPanel"
@@ -305,21 +296,21 @@ SettingsScroll.Parent = SettingsPanel
 SettingsScroll.BackgroundTransparency = 1
 SettingsScroll.Size = UDim2.new(1, 0, 1, 0)
 SettingsScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-SettingsScroll.ScrollBarThickness = isMobile and 8 or 6
+SettingsScroll.ScrollBarThickness = isMobile and 6 or 4
 SettingsScroll.ScrollBarImageColor3 = Color3.fromRGB(255, 215, 0)
 
 UIListLayout_3.Parent = SettingsScroll
-UIListLayout_3.Padding = UDim.new(0, isMobile and 12 or 10)
+UIListLayout_3.Padding = UDim.new(0, isMobile and 8 or 6)
 UIListLayout_3.SortOrder = Enum.SortOrder.LayoutOrder
 
 DragHandle.Name = "DragHandle"
 DragHandle.Parent = VividEnhancements
 DragHandle.AnchorPoint = Vector2.new(0.5, 0.5)
 DragHandle.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-DragHandle.BorderSizePixel = 3
+DragHandle.BorderSizePixel = 2
 DragHandle.BorderColor3 = Color3.fromRGB(255, 215, 0)
-DragHandle.Position = UDim2.new(1, -(isMobile and 60 or 80), 1, -(isMobile and 60 or 80))
-DragHandle.Size = UDim2.new(0, isMobile and 72 or 56, 0, isMobile and 72 or 56)
+DragHandle.Position = UDim2.new(1, -(isMobile and 50 or 70), 1, -(isMobile and 50 or 70))
+DragHandle.Size = UDim2.new(0, isMobile and 56 or 48, 0, isMobile and 56 or 48)
 DragHandle.Active = true
 DragHandle.Draggable = true
 DragHandle.Visible = true
@@ -332,7 +323,7 @@ DragIcon.Parent = DragHandle
 DragIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 DragIcon.BackgroundTransparency = 1
 DragIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
-DragIcon.Size = UDim2.new(0, isMobile and 36 or 28, 0, isMobile and 36 or 28)
+DragIcon.Size = UDim2.new(0, isMobile and 28 or 22, 0, isMobile and 28 or 22)
 DragIcon.Image = "rbxassetid://3926305904"
 DragIcon.ImageColor3 = Color3.fromRGB(255, 215, 0)
 DragIcon.ImageRectOffset = Vector2.new(404, 164)
@@ -354,6 +345,10 @@ local scripts = {
 	{name = "Simple Spy", desc = "Lightweight remote logger", category = "Debug"},
 	{name = "Orca", desc = "Modern UI library for hubs", category = "UI"}
 }
+
+local dragStartPos = nil
+local dragStartTime = 0
+local isDraggingHandle = false
 
 local function playClick()
 	pcall(function() clickSound:Play() end)
@@ -386,7 +381,7 @@ local function updateLineNumbers()
 		table.insert(nums, tostring(i))
 	end
 	LineNumbers.Text = table.concat(nums, "\n")
-	EditorScroll.CanvasSize = UDim2.new(0, 0, 0, math.max(EditorScroll.AbsoluteSize.Y, lines * (isMobile and 26 or 24)))
+	EditorScroll.CanvasSize = UDim2.new(0, 0, 0, math.max(EditorScroll.AbsoluteSize.Y, lines * (isMobile and 24 or 22)))
 end
 
 local function createScriptCard(scriptData)
@@ -394,10 +389,10 @@ local function createScriptCard(scriptData)
 	card.Name = scriptData.name
 	card.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 	card.BorderSizePixel = 0
-	card.Size = UDim2.new(1, -(isMobile and 24 or 16), 0, isMobile and 100 or 80)
+	card.Size = UDim2.new(1, -(isMobile and 16 or 12), 0, isMobile and 80 or 70)
 
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 10)
+	corner.CornerRadius = UDim.new(0, 8)
 	corner.Parent = card
 
 	local stroke = Instance.new("UIStroke")
@@ -407,34 +402,34 @@ local function createScriptCard(scriptData)
 
 	local nameLabel = Instance.new("TextLabel")
 	nameLabel.BackgroundTransparency = 1
-	nameLabel.Position = UDim2.new(0, 16, 0, 10)
-	nameLabel.Size = UDim2.new(1, -32, 0, 24)
+	nameLabel.Position = UDim2.new(0, 12, 0, 8)
+	nameLabel.Size = UDim2.new(1, -24, 0, 20)
 	nameLabel.Font = Enum.Font.GothamBold
 	nameLabel.Text = scriptData.name
 	nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	nameLabel.TextSize = isMobile and 17 or 16
+	nameLabel.TextSize = isMobile and 15 or 14
 	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 	nameLabel.Parent = card
 
 	local descLabel = Instance.new("TextLabel")
 	descLabel.BackgroundTransparency = 1
-	descLabel.Position = UDim2.new(0, 16, 0, 34)
-	descLabel.Size = UDim2.new(1, -32, 0, 20)
+	descLabel.Position = UDim2.new(0, 12, 0, 28)
+	descLabel.Size = UDim2.new(1, -24, 0, 18)
 	descLabel.Font = Enum.Font.Gotham
 	descLabel.Text = scriptData.desc
 	descLabel.TextColor3 = Color3.fromRGB(170, 170, 170)
-	descLabel.TextSize = isMobile and 14 or 13
+	descLabel.TextSize = isMobile and 12 or 11
 	descLabel.TextXAlignment = Enum.TextXAlignment.Left
 	descLabel.Parent = card
 
 	local categoryLabel = Instance.new("TextLabel")
 	categoryLabel.BackgroundTransparency = 1
-	categoryLabel.Position = UDim2.new(0, 16, 0, 54)
-	categoryLabel.Size = UDim2.new(0, 100, 0, 20)
+	categoryLabel.Position = UDim2.new(0, 12, 0, 46)
+	categoryLabel.Size = UDim2.new(0, 80, 0, 18)
 	categoryLabel.Font = Enum.Font.GothamBold
 	categoryLabel.Text = scriptData.category
 	categoryLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
-	categoryLabel.TextSize = isMobile and 12 or 11
+	categoryLabel.TextSize = isMobile and 10 or 9
 	categoryLabel.TextXAlignment = Enum.TextXAlignment.Left
 	categoryLabel.Parent = card
 
@@ -452,35 +447,35 @@ end
 local function createSettingRow(name, desc, defaultValue)
 	local row = Instance.new("Frame")
 	row.BackgroundTransparency = 1
-	row.Size = UDim2.new(1, -(isMobile and 24 or 16), 0, isMobile and 60 or 50)
+	row.Size = UDim2.new(1, -(isMobile and 16 or 12), 0, isMobile and 50 or 44)
 
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
-	label.Position = UDim2.new(0, 16, 0, 0)
-	label.Size = UDim2.new(1, -80, 0, isMobile and 28 or 24)
+	label.Position = UDim2.new(0, 12, 0, 0)
+	label.Size = UDim2.new(1, -70, 0, isMobile and 24 or 20)
 	label.Font = Enum.Font.GothamBold
 	label.Text = name
 	label.TextColor3 = Color3.fromRGB(255, 255, 255)
-	label.TextSize = isMobile and 16 or 14
+	label.TextSize = isMobile and 14 or 12
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.Parent = row
 
 	local descLabel = Instance.new("TextLabel")
 	descLabel.BackgroundTransparency = 1
-	descLabel.Position = UDim2.new(0, 16, 0, isMobile and 28 or 24)
-	descLabel.Size = UDim2.new(1, -80, 0, isMobile and 20 or 18)
+	descLabel.Position = UDim2.new(0, 12, 0, isMobile and 24 or 20)
+	descLabel.Size = UDim2.new(1, -70, 0, isMobile and 18 or 16)
 	descLabel.Font = Enum.Font.Gotham
 	descLabel.Text = desc
 	descLabel.TextColor3 = Color3.fromRGB(170, 170, 170)
-	descLabel.TextSize = isMobile and 13 or 11
+	descLabel.TextSize = isMobile and 11 or 10
 	descLabel.TextXAlignment = Enum.TextXAlignment.Left
 	descLabel.Parent = row
 
 	local toggle = Instance.new("TextButton")
 	toggle.AnchorPoint = Vector2.new(1, 0.5)
 	toggle.BackgroundColor3 = defaultValue and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(58, 58, 58)
-	toggle.Position = UDim2.new(1, -16, 0.5, 0)
-	toggle.Size = UDim2.new(0, isMobile and 56 or 48, 0, isMobile and 32 or 28)
+	toggle.Position = UDim2.new(1, -12, 0.5, 0)
+	toggle.Size = UDim2.new(0, isMobile and 48 or 40, 0, isMobile and 26 or 22)
 	toggle.Font = Enum.Font.GothamBold
 	toggle.Text = ""
 	toggle.TextSize = 12
@@ -492,8 +487,8 @@ local function createSettingRow(name, desc, defaultValue)
 	local knob = Instance.new("Frame")
 	knob.AnchorPoint = Vector2.new(0, 0.5)
 	knob.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	knob.Position = defaultValue and UDim2.new(1, -(isMobile and 28 or 24), 0.5, 0) or UDim2.new(0, 4, 0.5, 0)
-	knob.Size = UDim2.new(0, isMobile and 24 or 20, 0, isMobile and 24 or 20)
+	knob.Position = defaultValue and UDim2.new(1, -(isMobile and 24 or 20), 0.5, 0) or UDim2.new(0, 3, 0.5, 0)
+	knob.Size = UDim2.new(0, isMobile and 20 or 16, 0, isMobile and 20 or 16)
 
 	local knobCorner = Instance.new("UICorner")
 	knobCorner.CornerRadius = UDim.new(1, 0)
@@ -503,7 +498,7 @@ local function createSettingRow(name, desc, defaultValue)
 	toggle.MouseButton1Click:Connect(function()
 		defaultValue = not defaultValue
 		TweenService:Create(toggle, TweenInfo.new(0.2), {BackgroundColor3 = defaultValue and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(58, 58, 58)}):Play()
-		TweenService:Create(knob, TweenInfo.new(0.2), {Position = defaultValue and UDim2.new(1, -(isMobile and 28 or 24), 0.5, 0) or UDim2.new(0, 4, 0.5, 0)}):Play()
+		TweenService:Create(knob, TweenInfo.new(0.2), {Position = defaultValue and UDim2.new(1, -(isMobile and 24 or 20), 0.5, 0) or UDim2.new(0, 3, 0.5, 0)}):Play()
 		playClick()
 	end)
 
@@ -532,7 +527,7 @@ end
 local function toggleMinimize()
 	isMinimized = not isMinimized
 	if isMinimized then
-		TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, frameWidth, 0, isMobile and 52 or 48)}):Play()
+		TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, frameWidth, 0, isMobile and 44 or 40)}):Play()
 		PanelsFrame.Visible = false
 		TabsFrame.Visible = false
 		MinimizeBtn.Text = "+"
@@ -547,7 +542,28 @@ end
 
 DragHandle.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		openUI()
+		dragStartPos = Vector2.new(input.Position.X, input.Position.Y)
+		dragStartTime = tick()
+		isDraggingHandle = false
+	end
+end)
+
+DragHandle.InputChanged:Connect(function(input)
+	if dragStartPos and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStartPos
+		if delta.Magnitude > 10 then
+			isDraggingHandle = true
+		end
+	end
+end)
+
+DragHandle.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		if not isDraggingHandle and (tick() - dragStartTime) < 0.5 then
+			openUI()
+		end
+		dragStartPos = nil
+		isDraggingHandle = false
 	end
 end)
 
@@ -607,43 +623,28 @@ for _, scriptData in ipairs(scripts) do
 	card.Parent = ScriptsScroll
 end
 
-ScriptsScroll.CanvasSize = UDim2.new(0, 0, 0, #scripts * (isMobile and 112 or 90))
+ScriptsScroll.CanvasSize = UDim2.new(0, 0, 0, #scripts * (isMobile and 88 or 76))
 
 createSettingRow("Click Sounds", "Play sound on button interactions", true).Parent = SettingsScroll
 createSettingRow("Auto Save", "Persist script to storage", true).Parent = SettingsScroll
 createSettingRow("Minimize to Tray", "Hide to drag handle on minimize", true).Parent = SettingsScroll
 createSettingRow("Line Numbers", "Show line numbers in editor", true).Parent = SettingsScroll
 
-SettingsScroll.CanvasSize = UDim2.new(0, 0, 0, 4 * (isMobile and 72 or 50))
+SettingsScroll.CanvasSize = UDim2.new(0, 0, 0, 4 * (isMobile and 58 or 50))
 
 updateLineNumbers()
 
-print("[VividEnhancements] UI built, assigning parent...")
-
 local parentGui = nil
-local parentSource = ""
 pcall(function()
 	parentGui = game:GetService("CoreGui")
-	if parentGui then parentSource = "CoreGui" end
 end)
 if not parentGui then
 	pcall(function()
 		parentGui = LocalPlayer:WaitForChild("PlayerGui", 5)
-		if parentGui then parentSource = "PlayerGui" end
 	end)
 end
 if not parentGui then
 	parentGui = game:GetService("StarterGui")
-	parentSource = "StarterGui"
 end
 
-print("[VividEnhancements] Parent assigned:", parentSource, "(", parentGui and parentGui.Name or "nil", ")")
-
 VividEnhancements.Parent = parentGui
-
-print("[VividEnhancements] VividEnhancements.Parent:", VividEnhancements.Parent and VividEnhancements.Parent.Name or "nil")
-print("[VividEnhancements] MainFrame.Visible:", MainFrame.Visible)
-print("[VividEnhancements] MainFrame.AbsoluteSize:", MainFrame.AbsoluteSize)
-print("[VividEnhancements] MainFrame.AbsolutePosition:", MainFrame.AbsolutePosition)
-print("[VividEnhancements] DragHandle.Visible:", DragHandle.Visible)
-print("[VividEnhancements] DONE - UI should be visible now")
