@@ -67087,7 +67087,7 @@ task.wait(60)
 local _pg3 = _lp:FindFirstChild("PlayerGui")
 local _ls = _pg3 and _pg3:FindFirstChild("LoadingScreen")
 if _ls and _ls:IsA("LayerCollector") and _ls.Enabled then
-print("[Kicia] please rejoin it broke lolz.")
+print("[Vivid Enhancements] please rejoin it broke lolz.")
 _ls.Enabled = false
 end
 end)
