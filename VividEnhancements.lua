@@ -48,7 +48,7 @@ function K.track(c) K.connections[#K.connections + 1] = c; return c end
 function K.onUnload(f) K.cleanups[#K.cleanups + 1] = f end
 
 --==========================================================================
---  Signal / Trove (Kicia's own small versions)
+--  Signal / Trove (Vivid's own small versions)
 --==========================================================================
 local Signal = {}
 Signal.__index = Signal
