@@ -394,7 +394,7 @@ pcall(function() InstanceHandle = getgenv().InstanceHandle end)
 if InstanceHandle == nil then pcall(function() InstanceHandle = getgenv().InstanceHandle end) end
 if InstanceHandle == nil then InstanceHandle = { new = function(x) return x end } end
 --  The modules the decompiler lost (their bodies are `fn35(...) end` in
---  the dump), rebuilt from how the rest of Kicia's code calls them.
+--  the dump), rebuilt from how the rest of Vivid's code calls them.
 
 --  k: Trove
 tbl17.k = function() return { new = function(name) return Trove.new(name) end } end
