@@ -165,32 +165,30 @@ local eattheG = getgenv()
 
 
 local C = (cloneref(game:GetService("Players"))).LocalPlayer;
-local g = C.PlayerScripts;
+local g = C and C:FindFirstChild("PlayerScripts");
 
+if g then
+	local cameraSecurityModule = g:FindFirstChild("Modules") and g.Modules:FindFirstChild("CameraSecurity")
+	if cameraSecurityModule and cameraSecurityModule:IsA("ModuleScript") then
+		local ok, cameraSecurity = pcall(require, cameraSecurityModule)
+		if ok and cameraSecurity then
+			local mt = getrawmetatable(cameraSecurity)
+			if mt then
+				mt.__index = function(...)
+					return nil;
+				end;
 
-local cameraSecurity = require(g.Modules.CameraSecurity);
-local mt = getrawmetatable(cameraSecurity)
-local b = {};
+				mt.__tostring = function(...)
+					return "LocalPlayer = nil";
+				end;
 
-
-local originalIndex = rawget(getmetatable(cameraSecurity) or {}, "__index");
-local originalTostring = rawget(getmetatable(cameraSecurity) or {}, "__tostring");
-local originalNewindex = rawget(getmetatable(cameraSecurity) or {}, "__newindex");
-
-mt.__index = function(...)
-    return nil;
-end;
-
-mt.__tostring = function(...)
-    return "LocalPlayer = nil";
-end;
-
-mt.__newindex = function(E, G, f, ...)
-    return rawset(E, G, f);
-end;
-
-
-print(cameraSecurity, b)
+				mt.__newindex = function(E, G, f, ...)
+					return rawset(E, G, f);
+				end;
+			end
+		end
+	end
+end
 
 
 local ReplicatedStorage = cloneref(game:GetService('ReplicatedStorage'))
@@ -230,22 +228,23 @@ coroutine.wrap(function()
 
 		if status then
 			print("[ANTI-CHEAT] Hook detected: game:Kick() returned successfully")
-			--require(game:GetService("ReplicatedFirst"):WaitForChild("AnalyticsPipelineController"):WaitForChild("AnalyticsPipeline"))({}, {11, -11, 111})
 		end
 	end
 end)()
 
 task.spawn(function()
-	local ServerPing = workspace:WaitForChild("ServerPing")
-	local Remotes = ReplicatedStorage:FindFirstChild("Remotes")
+	local ServerPing = workspace:FindFirstChild("ServerPing")
+	local Remotes = ReplicatedStorage and ReplicatedStorage:FindFirstChild("Remotes")
 	local PingRemote = Remotes and Remotes:FindFirstChild("Ping")
 
-	while wait(12 * math.random()) do
-		local rnd = math.random(1, 9999)
-		local value = rnd == 6961 and 2137 or rnd == ServerPing.Value and 2138 or rnd
+	if ServerPing then
+		while wait(12 * math.random()) do
+			local rnd = math.random(1, 9999)
+			local value = rnd == 6961 and 2137 or rnd == ServerPing.Value and 2138 or rnd
 
-		if PingRemote then
-			PingRemote:FireServer(value)
+			if PingRemote then
+				PingRemote:FireServer(value)
+			end
 		end
 	end
 end)
@@ -258,7 +257,6 @@ task.spawn(function()
 
 		if ok and count ~= 4 then
 			print("[ANTI-CHEAT] Metatable tampering detected")
-			--require(game:GetService("ReplicatedFirst"):WaitForChild("AnalyticsPipelineController"):WaitForChild("AnalyticsPipeline"))({-10}, {15, -150})
 		end
 	end
 end)

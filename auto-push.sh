@@ -8,7 +8,7 @@ while true; do
         echo "Changes detected, pushing..."
         git add .
         git commit -m "Auto-update: $(date '+%Y-%m-%d %H:%M:%S')"
-        git push origin master
+        git push origin main
         echo "Pushed at $(date)"
     fi
     sleep 5
