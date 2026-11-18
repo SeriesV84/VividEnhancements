@@ -38748,7 +38748,7 @@ end
 end)
 if not okBody and not arg._warnedBody then
 arg._warnedBody = true
-warn("[Kicia] ViewModel hook skipped: " .. tostring(errBody))
+warn("[Vivid Enhancements] ViewModel hook skipped: " .. tostring(errBody))
 end
 end,
 }
