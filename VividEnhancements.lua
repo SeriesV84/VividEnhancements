@@ -48,6 +48,11 @@ local isMobile = UserInputService.TouchEnabled and not UserInputService.Keyboard
 local screenSize = workspace.CurrentCamera.ViewportSize
 local isSmallScreen = screenSize.X < 600 or screenSize.Y < 800
 
+print("[VividEnhancements] Starting...")
+print("[VividEnhancements] isMobile:", isMobile, "TouchEnabled:", UserInputService.TouchEnabled, "KeyboardEnabled:", UserInputService.KeyboardEnabled)
+print("[VividEnhancements] screenSize:", screenSize.X, "x", screenSize.Y)
+print("[VividEnhancements] isSmallScreen:", isSmallScreen)
+
 VividEnhancements.Name = "VividEnhancements"
 VividEnhancements.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 VividEnhancements.ResetOnSpawn = false
@@ -56,6 +61,8 @@ VividEnhancements.DisplayOrder = 999999
 
 local frameWidth = isSmallScreen and screenSize.X - 20 or (isMobile and math.min(980, screenSize.X - 20) or 980)
 local frameHeight = isSmallScreen and screenSize.Y - 20 or (isMobile and math.min(720, screenSize.Y - 20) or 720)
+
+print("[VividEnhancements] frameSize:", frameWidth, "x", frameHeight)
 
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = VividEnhancements
@@ -67,6 +74,8 @@ MainFrame.Size = UDim2.new(0, frameWidth, 0, frameHeight)
 MainFrame.Visible = true
 MainFrame.Active = true
 MainFrame.Draggable = true
+
+print("[VividEnhancements] MainFrame created, Visible:", MainFrame.Visible, "Parent:", MainFrame.Parent and MainFrame.Parent.Name or "nil")
 
 UICorner.CornerRadius = UDim.new(0, isMobile and 14 or 10)
 UICorner.Parent = MainFrame
@@ -609,19 +618,32 @@ SettingsScroll.CanvasSize = UDim2.new(0, 0, 0, 4 * (isMobile and 72 or 50))
 
 updateLineNumbers()
 
+print("[VividEnhancements] UI built, assigning parent...")
+
 local parentGui = nil
+local parentSource = ""
 pcall(function()
 	parentGui = game:GetService("CoreGui")
+	if parentGui then parentSource = "CoreGui" end
 end)
 if not parentGui then
 	pcall(function()
-		parentGui = LocalPlayer:WaitForChild("PlayerGui")
+		parentGui = LocalPlayer:WaitForChild("PlayerGui", 5)
+		if parentGui then parentSource = "PlayerGui" end
 	end)
 end
 if not parentGui then
 	parentGui = game:GetService("StarterGui")
+	parentSource = "StarterGui"
 end
+
+print("[VividEnhancements] Parent assigned:", parentSource, "(", parentGui and parentGui.Name or "nil", ")")
 
 VividEnhancements.Parent = parentGui
 
-print("Vivid Enhancements loaded. UI is open in center of screen.")
+print("[VividEnhancements] VividEnhancements.Parent:", VividEnhancements.Parent and VividEnhancements.Parent.Name or "nil")
+print("[VividEnhancements] MainFrame.Visible:", MainFrame.Visible)
+print("[VividEnhancements] MainFrame.AbsoluteSize:", MainFrame.AbsoluteSize)
+print("[VividEnhancements] MainFrame.AbsolutePosition:", MainFrame.AbsolutePosition)
+print("[VividEnhancements] DragHandle.Visible:", DragHandle.Visible)
+print("[VividEnhancements] DONE - UI should be visible now")
