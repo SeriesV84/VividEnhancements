@@ -66930,9 +66930,9 @@ local LITHIUM_LOGO_B64 = "iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAACZv0lEQV
 --  anti-cheat bypass (b7). Vivid's online user service (eZ) is offline.
 --==========================================================================
 local GlobalTrove = tbl17.n()
-tbl17.w().ensureStorageDirectories("kiciarebuild/rivals")
+tbl17.w().ensureStorageDirectories("vividenhancements/rivals")
 -- folders the config managers actually save into (they use writefile, which does not create folders)
-tbl17.w().ensureStorageDirectories("kiciahook/rivals_v3")
+tbl17.w().ensureStorageDirectories("vividenhancements/rivals_v3")
 tbl17.w().ensureStorageDirectories("kiciahook/rivals_v3/cosmetics/states")
 tbl17.w().ensureStorageDirectories("kiciarebuild/fonts")
 tbl17.w().ensureStorageDirectories("kiciarebuild/cache")
