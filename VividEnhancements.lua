@@ -768,7 +768,7 @@ look:AddTextBox({ Label = "Rank Icon", Config = P("RankSpoof", "Icon") })
     end
 end
 
---  eZ: Kicia's online user service (sessions with user.kicia.cc). Offline here:
+--  eZ: Vivid's online user service (sessions with user.kicia.cc). Offline here:
 --  nothing is sent anywhere, connecting is refused.
 tbl17.eZ = function()
     local Offline = {}
