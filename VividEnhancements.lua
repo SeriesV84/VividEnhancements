@@ -67041,28 +67041,28 @@ local _players = game:GetService("Players")
 local _wt0 = os.clock()
 while not _players.LocalPlayer and os.clock() - _wt0 < 60 do task.wait() end
 local _lp = _players.LocalPlayer
-if not _lp then warn("[Kicia] ABORTED: no LocalPlayer after 60s"); return end
+if not _lp then warn("[Vivid Enhancements] ABORTED: no LocalPlayer after 60s"); return end
 local _ps = _lp:FindFirstChild("PlayerScripts")
 if not _ps then
 pcall(function() _lp:WaitForChild("PlayerScripts", 60) end)
 _ps = _lp:FindFirstChild("PlayerScripts")
 end
-if not _ps then warn("[Kicia] ABORTED: no PlayerScripts"); return end
+if not _ps then warn("[Vivid Enhancements] ABORTED: no PlayerScripts"); return end
 local _ctrl = _ps:FindFirstChild("Controllers")
 if _ps and not _ctrl then
-print("[Kicia] waiting for PlayerScripts.Controllers ...")
+print("[Vivid Enhancements] waiting for PlayerScripts.Controllers ...")
 pcall(function() _ps:WaitForChild("Controllers", 30) end)
 _ctrl = _ps:FindFirstChild("Controllers")
 end
 if not _ctrl then
-warn("[Kicia] ABORTED: PlayerScripts.Controllers not found. This script is built for Rivals - remove it from autoexec if you are in a different game.")
+warn("[Vivid Enhancements] ABORTED: PlayerScripts.Controllers not found. This script is built for Rivals - remove it from autoexec if you are in a different game.")
 return
 end
 -- (no spawn gate: boot ASAP once data is ready)
 -- Adaptive fast boot: NO require() calls before boot (hands off the game's
 -- enum build). Boot as soon as the client looks alive: spawned + game HUD
 -- present. Usually seconds after join; 45s cap, then boot anyway.
-print("[Kicia] waiting for client to come alive ...")
+print("[Vivid Enhancements] waiting for client to come alive ...")
 local _wt1 = os.clock()
 while os.clock() - _wt1 < 45 do
 local _ch = _lp.Character
@@ -67079,9 +67079,8 @@ end
 if _spawnedOk and _uiOk then break end
 task.wait(1)
 end
-print("[Kicia] client alive, booting ...")
-print("[Kicia] controllers ready, booting ...")
-print("[FIX] auto-exec/color picker by skidcoded")
+print("[Vivid Enhancements] client alive, booting ...")
+print("[Vivid Enhancements] controllers ready, booting ...")
 tbl17.j1()(bootFn())
 task.spawn(function()
 task.wait(60)
