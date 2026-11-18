@@ -147,7 +147,7 @@ Trove.Destroy = Trove.Clean
 K.Trove = Trove
 
 --==========================================================================
---  Kicia's constant pool (v86[...]) as recovered from usage in the dump
+--  Vivid's constant pool (v86[...]) as recovered from usage in the dump
 --==========================================================================
 local C = {
     [3] = "Toggle", [9] = 20, [12] = 12, [18] = "0", [26] = 4, [34] = true, [44] = "Enabled",
