@@ -56,6 +56,26 @@ pcall(function()
 end)
 
 pcall(function()
+    local _rs = game:GetService("ReplicatedStorage")
+    local _remotes = _rs:FindFirstChild("Remotes") or Instance.new("Folder")
+    _remotes.Name = "Remotes"
+    _remotes.Parent = _rs
+    local _ev = _remotes:FindFirstChild("ClientAlert") or Instance.new("RemoteEvent")
+    _ev.Name = "ClientAlert"
+    _ev.Parent = _remotes
+end)
+
+pcall(function()
+    local _rf = game:GetService("ReplicatedFirst")
+    local _root = _rf:FindFirstChild("Root") or Instance.new("Folder")
+    _root.Name = "Root"
+    _root.Parent = _rf
+    local _ev = _root:FindFirstChild("ClientAlert") or Instance.new("RemoteEvent")
+    _ev.Name = "ClientAlert"
+    _ev.Parent = _root
+end)
+
+pcall(function()
     local _rf = game:GetService("ReplicatedFirst")
     local _tgt = _rf:WaitForChild("LocalScript3", 10)
     local _ct = 0
