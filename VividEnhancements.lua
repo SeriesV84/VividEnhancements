@@ -39,6 +39,8 @@ local DragHandle = Instance.new("Frame")
 local UICorner_12 = Instance.new("UICorner")
 local DragIcon = Instance.new("ImageLabel")
 
+-- v2.1 - smaller mobile UI
+
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
