@@ -301,6 +301,7 @@ if hookmetamethod then
     local _repRem    = _remotes and _remotes:FindFirstChild("Replication")
     local _fightRem  = _repRem and _repRem:FindFirstChild("Fighter")
     local _useItmRem = _fightRem and _fightRem:FindFirstChild("UseItem")
+    local _replUnrel = _fightRem and _fightRem:FindFirstChild("ReplicatedUnreliable")
 
     if _equipRem then
         local _onc
@@ -309,6 +310,10 @@ if hookmetamethod then
                 return _onc(self, ...)
             end
             local _a = {...}
+
+            if _replUnrel and self == _replUnrel then
+                return _onc(self, ...)
+            end
 
             if _useItmRem and self == _useItmRem then
                 local _oid = _a[1]
@@ -341,7 +346,7 @@ if hookmetamethod then
                 _eq[_wn] = _eq[_wn] or {}
                 if not _cn or _cn == "None" or _cn == "" then
                     _eq[_wn][_ct] = nil
-                    if not next(_eq[_wn]) then _eq[wn] = nil end
+                    if not next(_eq[_wn]) then _eq[_wn] = nil end
                 else
                     local _cloned = _mkCosmetic(_cn, _ct, {
                         inverted = _opts.IsInverted,
