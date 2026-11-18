@@ -19031,7 +19031,7 @@ break
 end
 print("[Vivid Enhancements] waiting for " .. arg:GetFullName() .. " -> " .. tostring(v115) .. " (" .. math.floor(os.clock() - _t0) .. "s)")
 if os.clock() - _t0 > 60 then
-error("[Kicia] timed out waiting for " .. arg:GetFullName() .. " -> " .. tostring(v115) .. ". Wrong game? This script is built for Rivals.", 2)
+error("[Vivid Enhancements] timed out waiting for " .. arg:GetFullName() .. " -> " .. tostring(v115) .. ". Wrong game? This script is built for Rivals.", 2)
 end
 end
 end
