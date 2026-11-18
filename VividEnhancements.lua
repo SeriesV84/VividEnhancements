@@ -63780,6 +63780,1041 @@ end
 return jn.c
 end
 end
+do -- ragebot.Resolver (Anti-Aim Resolver)
+local function fn35()
+local v115 = tbl17.bG()
+local v116 = tbl17.k()
+
+local Resolver = {}
+Resolver.__index = Resolver
+
+Resolver.Patterns = {
+    Jitter = "Jitter",
+    Spin = "Spin",
+    Static = "Static",
+    Backwards = "Backwards",
+    LBY = "LBY",
+    None = "None"
+}
+
+function Resolver.new(arg)
+    local self = setmetatable({
+        _trove = v116.new("ragebot.Resolver"),
+        _history = {},
+        _maxHistory = 128,
+        _lastAngles = {},
+        _resolvedAngles = {},
+        _missHistory = {},
+        _patternDetected = {},
+        _config = v115.Data.Ragebot.Resolver or {}
+    }, Resolver)
+    return self
+end
+
+function Resolver:RecordAngles(player, angles, tick)
+    if not self._history[player] then
+        self._history[player] = {}
+        self._lastAngles[player] = angles
+        self._missHistory[player] = {}
+        self._patternDetected[player] = Resolver.Patterns.None
+    end
+
+    local history = self._history[player]
+    table.insert(history, { angles = angles, tick = tick, time = os.clock() })
+
+    while #history > self._maxHistory do
+        table.remove(history, 1)
+    end
+
+    self._lastAngles[player] = angles
+    self:_AnalyzePattern(player)
+end
+
+function Resolver:_AnalyzePattern(player)
+    local history = self._history[player]
+    if #history < 10 then return end
+
+    local yawDeltas = {}
+    for i = 2, #history do
+        local delta = math.abs(history[i].angles.Y - history[i-1].angles.Y)
+        if delta > 180 then delta = 360 - delta end
+        table.insert(yawDeltas, delta)
+    end
+
+    local avgDelta = 0
+    for _, d in ipairs(yawDeltas) do avgDelta = avgDelta + d end
+    avgDelta = avgDelta / #yawDeltas
+
+    local maxDelta = 0
+    for _, d in ipairs(yawDeltas) do if d > maxDelta then maxDelta = d end end
+
+    local pattern = Resolver.Patterns.None
+    if maxDelta > 90 and avgDelta > 45 then
+        pattern = Resolver.Patterns.Jitter
+    elseif avgDelta > 30 and maxDelta < 90 then
+        pattern = Resolver.Patterns.Spin
+    elseif avgDelta < 5 then
+        pattern = Resolver.Patterns.Static
+    elseif math.abs(history[#history].angles.Y - (history[1].angles.Y + 180) % 360) < 15 then
+        pattern = Resolver.Patterns.Backwards
+    end
+
+    self._patternDetected[player] = pattern
+end
+
+function Resolver:GetResolvedAngles(player)
+    local pattern = self._patternDetected[player]
+    local lastAngles = self._lastAngles[player]
+    if not lastAngles then return nil end
+
+    local resolved = lastAngles
+
+    if pattern == Resolver.Patterns.Jitter then
+        resolved = Vector2.new(lastAngles.X, lastAngles.Y)
+    elseif pattern == Resolver.Patterns.Spin then
+        resolved = Vector2.new(lastAngles.X, (lastAngles.Y + 180) % 360)
+    elseif pattern == Resolver.Patterns.Backwards then
+        resolved = Vector2.new(lastAngles.X, (lastAngles.Y + 180) % 360)
+    elseif pattern == Resolver.Patterns.LBY then
+        resolved = Vector2.new(lastAngles.X, (lastAngles.Y + 90) % 360)
+    end
+
+    if self._config.MissCorrection and self._missHistory[player] then
+        local correction = self:_CalculateMissCorrection(player)
+        resolved = resolved + correction
+    end
+
+    self._resolvedAngles[player] = resolved
+    return resolved
+end
+
+function Resolver:_CalculateMissCorrection(player)
+    local misses = self._missHistory[player]
+    if #misses < 3 then return Vector2.zero end
+
+    local avgX, avgY = 0, 0
+    for _, miss in ipairs(misses) do
+        avgX = avgX + miss.delta.X
+        avgY = avgY + miss.delta.Y
+    end
+    return Vector2.new(avgX / #misses, avgY / #misses) * 0.5
+end
+
+function Resolver:RecordMiss(player, targetAngles, actualAngles)
+    if not self._missHistory[player] then self._missHistory[player] = {} end
+    local delta = actualAngles - targetAngles
+    table.insert(self._missHistory[player], { delta = delta, time = os.clock() })
+    while #self._missHistory[player] > 20 do
+        table.remove(self._missHistory[player], 1)
+    end
+end
+
+function Resolver:GetPattern(player)
+    return self._patternDetected[player] or Resolver.Patterns.None
+end
+
+function Resolver:GetHistory(player)
+    return self._history[player] or {}
+end
+
+function Resolver:Destroy()
+    self._trove:Destroy()
+end
+
+return Resolver
+end
+
+tbl17.ragebot_Resolver = function()
+local cache = tbl17.cache.ragebot_Resolver
+if not cache then
+cache = { c = fn35() }
+tbl17.cache.ragebot_Resolver = cache
+end
+return cache.c
+end
+end
+
+do -- ragebot.Backtrack (Tick History)
+local function fn35()
+local v115 = tbl17.bG()
+local v116 = tbl17.k()
+
+local Backtrack = {}
+Backtrack.__index = Backtrack
+
+function Backtrack.new(arg)
+    local self = setmetatable({
+        _trove = v116.new("ragebot.Backtrack"),
+        _records = {},
+        _maxTicks = v115.Data.Ragebot.Backtrack.MaxTicks or 128,
+        _config = v115.Data.Ragebot.Backtrack or {}
+    }, Backtrack)
+    return self
+end
+
+function Backtrack:Record(player, record)
+    if not self._records[player] then
+        self._records[player] = {}
+    end
+
+    table.insert(self._records[player], record)
+
+    while #self._records[player] > self._maxTicks do
+        table.remove(self._records[player], 1)
+    end
+end
+
+function Backtrack:GetBestRecord(player, targetPosition, maxLatency)
+    local records = self._records[player]
+    if not records or #records == 0 then return nil end
+
+    local bestRecord = nil
+    local bestDistance = math.huge
+    local currentTime = os.clock()
+    local latency = maxLatency or 0.1
+
+    for i = #records, 1, -1 do
+        local record = records[i]
+        local age = currentTime - record.time
+        if age > latency then break end
+
+        local distance = (record.position - targetPosition).Magnitude
+        if distance < bestDistance then
+            bestDistance = distance
+            bestRecord = record
+        end
+    end
+
+    return bestRecord
+end
+
+function Backtrack:GetRecordAtTick(player, tick)
+    local records = self._records[player]
+    if not records then return nil end
+
+    for i = #records, 1, -1 do
+        if records[i].tick <= tick then
+            return records[i]
+        end
+    end
+    return records[#records]
+end
+
+function Backtrack:Clear(player)
+    if player then
+        self._records[player] = nil
+    else
+        self._records = {}
+    end
+end
+
+function Backtrack:GetVisualData(player)
+    local records = self._records[player]
+    if not records then return {} end
+
+    local visual = {}
+    for _, record in ipairs(records) do
+        table.insert(visual, {
+            position = record.position,
+            hitboxes = record.hitboxes,
+            time = record.time,
+            tick = record.tick
+        })
+    end
+    return visual
+end
+
+function Backtrack:Destroy()
+    self._trove:Destroy()
+end
+
+return Backtrack
+end
+
+tbl17.ragebot_Backtrack = function()
+local cache = tbl17.cache.ragebot_Backtrack
+if not cache then
+cache = { c = fn35() }
+tbl17.cache.ragebot_Backtrack = cache
+end
+return cache.c
+end
+end
+
+do -- ragebot.ProjectilePrediction
+local function fn35()
+local v115 = tbl17.bG()
+
+local ProjectilePrediction = {}
+ProjectilePrediction.__index = ProjectilePrediction
+
+ProjectilePrediction.ProjectileData = {
+    Slingshot = { Speed = 150, Gravity = true, Drop = 0.5 },
+    ThrowingKnife = { Speed = 80, Gravity = true, Drop = 0.8 },
+    Grenade = { Speed = 40, Gravity = true, Drop = 1.0 },
+    Snowball = { Speed = 60, Gravity = true, Drop = 0.6 },
+}
+
+function ProjectilePrediction.new(arg)
+    local self = setmetatable({
+        _config = v115.Data.Ragebot.Prediction or {},
+        _gravity = workspace.Gravity
+    }, ProjectilePrediction)
+    return self
+end
+
+function ProjectilePrediction:Predict(targetPos, targetVel, projectileType, muzzlePos)
+    local data = self.ProjectileData[projectileType]
+    if not data then return targetPos end
+
+    local config = self._config
+    if not config.Projectile then return targetPos end
+
+    local gravity = config.Gravity and self._gravity or 0
+    local speed = data.Speed
+    local distance = (targetPos - muzzlePos).Magnitude
+    local timeToTarget = distance / speed
+
+    local predictedPos = targetPos + targetVel * timeToTarget
+
+    if data.Gravity and gravity > 0 then
+        local drop = 0.5 * gravity * timeToTarget * timeToTarget * data.Drop
+        predictedPos = predictedPos + Vector3.new(0, -drop, 0)
+    end
+
+    if config.VelocityExtrapolation then
+        local accel = targetVel * 0.1
+        predictedPos = predictedPos + accel * timeToTarget
+    end
+
+    return predictedPos, timeToTarget
+end
+
+function ProjectilePrediction:CalculateLaunchAngle(muzzlePos, targetPos, projectileType)
+    local data = self.ProjectileData[projectileType]
+    if not data or not data.Gravity then
+        return (targetPos - muzzlePos).Unit
+    end
+
+    local speed = data.Speed
+    local gravity = self._gravity
+    local delta = targetPos - muzzlePos
+    local distance = delta.Magnitude
+    local heightDiff = delta.Y
+
+    local speedSq = speed * speed
+    local term = speedSq * speedSq - gravity * (gravity * distance * distance + 2 * heightDiff * speedSq)
+
+    if term < 0 then return delta.Unit end
+
+    local root = math.sqrt(term)
+    local angle1 = math.atan((speedSq + root) / (gravity * distance))
+    local angle2 = math.atan((speedSq - root) / (gravity * distance))
+
+    local angle = math.min(angle1, angle2)
+    local direction = Vector3.new(delta.X, 0, delta.Z).Unit
+    return CFrame.fromAxisAngle(Vector3.new(0, 1, 0), math.atan2(delta.Z, delta.X)) *
+           CFrame.fromAxisAngle(Vector3.new(1, 0, 0), -angle) * Vector3.new(0, 0, -1)
+end
+
+function ProjectilePrediction:SimulateTrajectory(muzzlePos, launchVel, steps, stepTime)
+    local trajectory = {}
+    local pos = muzzlePos
+    local vel = launchVel
+    local gravity = self._gravity
+
+    for i = 1, steps or 100 do
+        table.insert(trajectory, pos)
+        pos = pos + vel * (stepTime or 0.016)
+        vel = vel + Vector3.new(0, -gravity, 0) * (stepTime or 0.016)
+
+        local ray = workspace:Raycast(pos - vel * (stepTime or 0.016), vel * (stepTime or 0.016))
+        if ray then break end
+    end
+
+    return trajectory
+end
+
+return ProjectilePrediction
+end
+
+tbl17.ragebot_ProjectilePrediction = function()
+local cache = tbl17.cache.ragebot_ProjectilePrediction
+if not cache then
+cache = { c = fn35() }
+tbl17.cache.ragebot_ProjectilePrediction = cache
+end
+return cache.c
+end
+end
+
+do -- ragebot.PerlinNoise (Organic Evasion Movement)
+local function fn35()
+
+local PerlinNoise = {}
+PerlinNoise.__index = PerlinNoise
+
+local PERMUTATION = {}
+for i = 0, 255 do PERMUTATION[i] = i end
+for i = 255, 1, -1 do
+    local j = math.random(0, i)
+    PERMUTATION[i], PERMUTATION[j] = PERMUTATION[j], PERMUTATION[i]
+end
+local PERM = {}
+for i = 0, 511 do PERM[i] = PERMUTATION[i % 256] end
+
+local function FADE(t) return t * t * t * (t * (t * 6 - 15) + 10) end
+local function LERP(a, b, t) return a + (b - a) * t end
+local function GRAD(hash, x, y, z)
+    local h = hash % 16
+    local u = h < 8 and x or y
+    local v = h < 4 and y or (h == 12 or h == 14 and x or z)
+    return ((h % 2) == 0 and u or -u) + ((h % 4) == 0 and v or -v)
+end
+
+function PerlinNoise.new(arg)
+    local self = setmetatable({
+        _seed = math.random(0, 10000),
+        _octaves = arg.Octaves or 3,
+        _frequency = arg.Frequency or 0.1,
+        _amplitude = arg.Amplitude or 15,
+        _persistence = 0.5,
+        _lacunarity = 2.0
+    }, PerlinNoise)
+    return self
+end
+
+function PerlinNoise:Noise3D(x, y, z)
+    x = (x + self._seed) * self._frequency
+    y = (y + self._seed) * self._frequency
+    z = (z + self._seed) * self._frequency
+
+    local total = 0
+    local amplitude = 1
+    local frequency = 1
+    local maxValue = 0
+
+    for i = 1, self._octaves do
+        local xi = math.floor(x * frequency) % 256
+        local yi = math.floor(y * frequency) % 256
+        local zi = math.floor(z * frequency) % 256
+
+        local xf = x * frequency - math.floor(x * frequency)
+        local yf = y * frequency - math.floor(y * frequency)
+        local zf = z * frequency - math.floor(z * frequency)
+
+        local u = FADE(xf)
+        local v = FADE(yf)
+        local w = FADE(zf)
+
+        local aaa = PERM[PERM[PERM[xi] + yi] + zi]
+        local aba = PERM[PERM[PERM[xi] + yi + 1] + zi]
+        local aab = PERM[PERM[PERM[xi] + yi] + zi + 1]
+        local abb = PERM[PERM[PERM[xi] + yi + 1] + zi + 1]
+        local baa = PERM[PERM[PERM[xi + 1] + yi] + zi]
+        local bba = PERM[PERM[PERM[xi + 1] + yi + 1] + zi]
+        local bab = PERM[PERM[PERM[xi + 1] + yi] + zi + 1]
+        local bbb = PERM[PERM[PERM[xi + 1] + yi + 1] + zi + 1]
+
+        local x1 = LERP(GRAD(aaa, xf, yf, zf), GRAD(baa, xf - 1, yf, zf), u)
+        local x2 = LERP(GRAD(aba, xf, yf - 1, zf), GRAD(bba, xf - 1, yf - 1, zf), u)
+        local y1 = LERP(x1, x2, v)
+
+        x1 = LERP(GRAD(aab, xf, yf, zf - 1), GRAD(bab, xf - 1, yf, zf - 1), u)
+        x2 = LERP(GRAD(abb, xf, yf - 1, zf - 1), GRAD(bbb, xf - 1, yf - 1, zf - 1), u)
+        local y2 = LERP(x1, x2, v)
+
+        total = total + LERP(y1, y2, w) * amplitude
+
+        maxValue = maxValue + amplitude
+        amplitude = amplitude * self._persistence
+        frequency = frequency * self._lacunarity
+    end
+
+    return total / maxValue
+end
+
+function PerlinNoise:GetOffset(time, basePos)
+    local t = time * 0.5
+    local offset = Vector3.new(
+        self:Noise3D(basePos.X, t, 0) * self._amplitude,
+        self:Noise3D(0, basePos.Y, t) * self._amplitude * 0.3,
+        self:Noise3D(basePos.Z, 0, t) * self._amplitude
+    )
+    return offset
+end
+
+function PerlinNoise:SetParams(octaves, frequency, amplitude)
+    self._octaves = octaves or self._octaves
+    self._frequency = frequency or self._frequency
+    self._amplitude = amplitude or self._amplitude
+end
+
+return PerlinNoise
+end
+
+tbl17.ragebot_PerlinNoise = function()
+local cache = tbl17.cache.ragebot_PerlinNoise
+if not cache then
+cache = { c = fn35() }
+tbl17.cache.ragebot_PerlinNoise = cache
+end
+return cache.c
+end
+end
+
+do -- ragebot.MultiPointHitbox
+local function fn35()
+local v115 = tbl17.bG()
+
+local MultiPointHitbox = {}
+MultiPointHitbox.__index = MultiPointHitbox
+
+MultiPointHitbox.HitboxPoints = {
+    HitboxHead = {
+        Vector3.new(0, 0, 0),
+        Vector3.new(0.5, 0.5, 0),
+        Vector3.new(-0.5, 0.5, 0),
+        Vector3.new(0.5, -0.5, 0),
+        Vector3.new(-0.5, -0.5, 0),
+    },
+    HitboxBody = {
+        Vector3.new(0, 0, 0),
+        Vector3.new(0, 1, 0),
+        Vector3.new(0, -1, 0),
+        Vector3.new(1, 0, 0),
+        Vector3.new(-1, 0, 0),
+    }
+}
+
+function MultiPointHitbox.new(arg)
+    local self = setmetatable({
+        _config = v115.Data.Ragebot.HitboxSelection.MultiPoint or {},
+        _pointsPerHitbox = arg.PointsPerHitbox or 5
+    }, MultiPointHitbox)
+    return self
+end
+
+function MultiPointHitbox:GetPoints(hitboxName, hitboxCFrame, hitboxSize)
+    local config = self._config
+    if not config.Enabled then
+        return { hitboxCFrame.Position }
+    end
+
+    local basePoints = self.HitboxPoints[hitboxName] or { Vector3.new(0, 0, 0) }
+    local points = {}
+    local scale = math.min(hitboxSize.X, hitboxSize.Y, hitboxSize.Z) * 0.5
+    local reduction = (config.SizeReductionPercentage or 50) / 100
+
+    for i = 1, math.min(self._pointsPerHitbox, #basePoints) do
+        local localPoint = basePoints[i] * scale * reduction
+        local worldPoint = hitboxCFrame:PointToWorldSpace(localPoint)
+        table.insert(points, worldPoint)
+    end
+
+    return points
+end
+
+function MultiPointHitbox:SelectBestPoint(hitboxName, hitboxCFrame, hitboxSize, cameraPos, targetConditions)
+    local points = self:GetPoints(hitboxName, hitboxCFrame, hitboxSize)
+    local bestPoint = points[1]
+    local bestScore = -math.huge
+
+    for _, point in ipairs(points) do
+        local direction = (point - cameraPos).Unit
+        local distance = (point - cameraPos).Magnitude
+
+        local score = 1000 / distance
+
+        if targetConditions and targetConditions.WithinFov then
+            local screenPoint = workspace.CurrentCamera:WorldToViewportPoint(point)
+            local center = workspace.CurrentCamera.ViewportSize / 2
+            local fovDist = (Vector2.new(screenPoint.X, screenPoint.Y) - center).Magnitude
+            local fovRadius = workspace.CurrentCamera.ViewportSize.Y / 2 / math.tan(math.rad(workspace.CurrentCamera.FieldOfView) / 2)
+            if fovDist > fovRadius then
+                score = score * 0.1
+            end
+        end
+
+        if score > bestScore then
+            bestScore = score
+            bestPoint = point
+        end
+    end
+
+    return bestPoint
+end
+
+return MultiPointHitbox
+end
+
+tbl17.ragebot_MultiPointHitbox = function()
+local cache = tbl17.cache.ragebot_MultiPointHitbox
+if not cache then
+cache = { c = fn35() }
+tbl17.cache.ragebot_MultiPointHitbox = cache
+end
+return cache.c
+end
+end
+
+do -- ragebot.VisibilityCheck
+local function fn35()
+local v115 = tbl17.bG()
+
+local VisibilityCheck = {}
+VisibilityCheck.__index = VisibilityCheck
+
+function VisibilityCheck.new(arg)
+    local self = setmetatable({
+        _config = v115.Data.Ragebot.HitboxSelection.VisibilityCheck or {},
+        _ignoreList = {},
+        _params = RaycastParams.new()
+    }, VisibilityCheck)
+
+    self._params.FilterType = Enum.RaycastFilterType.Exclude
+    self._params.IgnoreWater = true
+    return self
+end
+
+function VisibilityCheck:SetIgnoreList(list)
+    self._ignoreList = list
+    self._params.FilterDescendantsInstances = list
+end
+
+function VisibilityCheck:IsVisible(origin, targetPos, targetPart)
+    local direction = (targetPos - origin).Unit
+    local distance = (targetPos - origin).Magnitude
+
+    self._params.FilterDescendantsInstances = self._ignoreList
+    local result = workspace:Raycast(origin, direction * distance, self._params)
+
+    if not result then return true end
+    if result.Instance == targetPart or result.Instance:IsDescendantOf(targetPart.Parent) then
+        return true
+    end
+
+    if result.Instance.Transparency >= 1 then
+        return true
+    end
+
+    if result.Material == Enum.Material.Glass or result.Material == Enum.Material.ForceField then
+        return true
+    end
+
+    return false
+end
+
+function VisibilityCheck:GetVisiblePoints(origin, points, targetPart)
+    local visible = {}
+    for _, point in ipairs(points) do
+        if self:IsVisible(origin, point, targetPart) then
+            table.insert(visible, point)
+        end
+    end
+    return visible
+end
+
+function VisibilityCheck:GetVisibilityFraction(origin, points, targetPart)
+    local total = #points
+    if total == 0 then return 0 end
+    local visible = 0
+    for _, point in ipairs(points) do
+        if self:IsVisible(origin, point, targetPart) then
+            visible = visible + 1
+        end
+    end
+    return visible / total
+end
+
+return VisibilityCheck
+end
+
+tbl17.ragebot_VisibilityCheck = function()
+local cache = tbl17.cache.ragebot_VisibilityCheck
+if not cache then
+cache = { c = fn35() }
+tbl17.cache.ragebot_VisibilityCheck = cache
+end
+return cache.c
+end
+end
+
+do -- ragebot.DynamicFOV
+local function fn35()
+local v115 = tbl17.bG()
+
+local DynamicFOV = {}
+DynamicFOV.__index = DynamicFOV
+
+DynamicFOV.WeaponScales = {
+    Sniper = 0.5,
+    Rifle = 1.0,
+    Shotgun = 1.5,
+    Pistol = 1.2,
+    SMG = 1.3,
+    LMG = 0.9,
+    Melee = 2.0,
+}
+
+function DynamicFOV.new(arg)
+    local self = setmetatable({
+        _config = v115.Data.Ragebot.FOV.Dynamic or {},
+        _currentRadius = 150,
+        _targetRadius = 150,
+        _lerpSpeed = 10
+    }, DynamicFOV)
+    return self
+end
+
+function DynamicFOV:Update(weaponType, targetDistance, isLocked)
+    local config = self._config
+    if not config.Enabled then return self._currentRadius end
+
+    local baseRadius = config.MinRadius or 50
+    local maxRadius = config.MaxRadius or 300
+    local weaponScale = config.WeaponScale and config.WeaponScale[weaponType] or self.WeaponScales[weaponType] or 1.0
+
+    local distanceFactor = 1.0
+    if targetDistance then
+        distanceFactor = math.clamp(targetDistance / 100, 0.5, 2.0)
+    end
+
+    local lockFactor = isLocked and 0.7 or 1.0
+
+    self._targetRadius = math.clamp(baseRadius * weaponScale * distanceFactor * lockFactor, baseRadius, maxRadius)
+    self._currentRadius = self._currentRadius + (self._targetRadius - self._currentRadius) * 0.15
+
+    return self._currentRadius
+end
+
+function DynamicFOV:GetRadius()
+    return self._currentRadius
+end
+
+function DynamicFOV:SetRadius(radius)
+    self._currentRadius = radius
+    self._targetRadius = radius
+end
+
+return DynamicFOV
+end
+
+tbl17.ragebot_DynamicFOV = function()
+local cache = tbl17.cache.ragebot_DynamicFOV
+if not cache then
+cache = { c = fn35() }
+tbl17.cache.ragebot_DynamicFOV = cache
+end
+return cache.c
+end
+end
+
+do -- ragebot.TriggerbotIntegration
+local function fn35()
+local v115 = tbl17.bG()
+
+local TriggerbotIntegration = {}
+TriggerbotIntegration.__index = TriggerbotIntegration
+
+function TriggerbotIntegration.new(arg)
+    local self = setmetatable({
+        _config = v115.Data.Ragebot.Triggerbot or {},
+        _lastShot = 0,
+        _shotCount = 0,
+        _burstActive = false,
+        _reactionTimer = 0
+    }, TriggerbotIntegration)
+    return self
+end
+
+function TriggerbotIntegration:ShouldFire(crosshairHitbox, currentTime)
+    local config = self._config
+    if not config.Integrated then return false end
+    if not crosshairHitbox then return false end
+
+    local reactionTime = math.random(config.ReactionTime.Min or 30, config.ReactionTime.Max or 80) / 1000
+
+    if currentTime - self._lastShot < reactionTime then
+        return false
+    end
+
+    if config.BurstLimit and self._shotCount >= config.BurstLimit then
+        if not self._burstActive then
+            self._burstActive = true
+            task.delay(0.5, function()
+                self._burstActive = false
+                self._shotCount = 0
+            end)
+        end
+        return false
+    end
+
+    self._lastShot = currentTime
+    self._shotCount = self._shotCount + 1
+    return true
+end
+
+function TriggerbotIntegration:Reset()
+    self._lastShot = 0
+    self._shotCount = 0
+    self._burstActive = false
+end
+
+function TriggerbotIntegration:GetState()
+    return {
+        shotsInBurst = self._shotCount,
+        burstActive = self._burstActive,
+        timeSinceLastShot = os.clock() - self._lastShot
+    }
+end
+
+return TriggerbotIntegration
+end
+
+tbl17.ragebot_TriggerbotIntegration = function()
+local cache = tbl17.cache.ragebot_TriggerbotIntegration
+if not cache then
+cache = { c = fn35() }
+tbl17.cache.ragebot_TriggerbotIntegration = cache
+end
+return cache.c
+end
+end
+
+do -- ragebot.DebugVisuals
+local function fn35()
+local v115 = tbl17.bG()
+local v116 = tbl17.k()
+
+local DebugVisuals = {}
+DebugVisuals.__index = DebugVisuals
+
+function DebugVisuals.new(arg)
+    local self = setmetatable({
+        _trove = v116.new("ragebot.DebugVisuals"),
+        _config = v115.Data.Ragebot.Debug or {},
+        _drawings = {},
+        _resolver = arg.Resolver,
+        _backtrack = arg.Backtrack,
+        _targetSelection = arg.TargetSelection,
+        _evasion = arg.Evasion
+    }, DebugVisuals)
+
+    self:_CreateDrawings()
+    return self
+end
+
+function DebugVisuals:_CreateDrawings()
+    local Drawing = Drawing or {}
+    if not Drawing.new then return end
+
+    self._drawings.fovCircle = Drawing.new("Circle")
+    self._drawings.fovCircle.Visible = false
+    self._drawings.fovCircle.Color = Color3.fromRGB(255, 255, 0)
+    self._drawings.fovCircle.Thickness = 2
+    self._drawings.fovCircle.Filled = false
+
+    self._drawings.targetLine = Drawing.new("Line")
+    self._drawings.targetLine.Visible = false
+    self._drawings.targetLine.Color = Color3.fromRGB(0, 255, 0)
+    self._drawings.targetLine.Thickness = 2
+
+    self._drawings.hitboxBoxes = {}
+    self._drawings.backtrackDots = {}
+    self._drawings.predictionArc = Drawing.new("Line")
+    self._drawings.predictionArc.Visible = false
+    self._drawings.predictionArc.Color = Color3.fromRGB(255, 0, 255)
+    self._drawings.predictionArc.Thickness = 1
+
+    self._drawings.evasionPath = {}
+    self._drawings.resolverText = Drawing.new("Text")
+    self._drawings.resolverText.Visible = false
+    self._drawings.resolverText.Color = Color3.fromRGB(255, 255, 255)
+    self._drawings.resolverText.Size = 14
+    self._drawings.resolverText.Center = true
+    self._drawings.resolverText.Outline = true
+end
+
+function DebugVisuals:Update(camera, target, localPosition)
+    local config = self._config
+    if not config.Enabled then self:HideAll() return end
+
+    if config.ShowFOV then
+        self:_UpdateFOVCircle(camera)
+    else
+        self:_Hide("fovCircle")
+    end
+
+    if target and config.ShowTargetLine then
+        self:_UpdateTargetLine(camera, target, localPosition)
+    else
+        self:_Hide("targetLine")
+    end
+
+    if config.ShowHitboxes and target then
+        self:_UpdateHitboxes(target)
+    else
+        self:_HideHitboxes()
+    end
+
+    if config.ShowBacktrack and self._backtrack and target then
+        self:_UpdateBacktrack(target)
+    else
+        self:_HideBacktrack()
+    end
+
+    if config.ShowPrediction and target then
+        self:_UpdatePrediction(target)
+    else
+        self:_Hide("predictionArc")
+    end
+
+    if config.ShowEvasionPath and self._evasion then
+        self:_UpdateEvasionPath()
+    else
+        self:_HideEvasionPath()
+    end
+
+    if config.ShowResolverState and self._resolver and target then
+        self:_UpdateResolverText(target)
+    else
+        self:_Hide("resolverText")
+    end
+end
+
+function DebugVisuals:_UpdateFOVCircle(camera)
+    local drawing = self._drawings.fovCircle
+    local fov = self._targetSelection and self._targetSelection._measurer and self._targetSelection._measurer()
+    drawing.Visible = true
+    drawing.Position = camera.ViewportSize / 2
+    drawing.Radius = fov or 150
+end
+
+function DebugVisuals:_UpdateTargetLine(camera, target, localPos)
+    local drawing = self._drawings.targetLine
+    local screenPos, onScreen = camera:WorldToViewportPoint(target.AliveState.RootPart.Position)
+    if onScreen then
+        drawing.Visible = true
+        drawing.From = camera.ViewportSize / 2
+        drawing.To = Vector2.new(screenPos.X, screenPos.Y)
+    else
+        drawing.Visible = false
+    end
+end
+
+function DebugVisuals:_UpdateHitboxes(target)
+    for i, hitboxName in ipairs({"HitboxHead", "HitboxBody"}) do
+        local hitbox = target.AliveState[hitboxName]
+        if hitbox then
+            if not self._drawings.hitboxBoxes[i] then
+                local Drawing = Drawing or {}
+                self._drawings.hitboxBoxes[i] = Drawing.new("Square")
+                self._drawings.hitboxBoxes[i].Thickness = 1
+                self._drawings.hitboxBoxes[i].Color = hitboxName == "HitboxHead" and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 0)
+                self._drawings.hitboxBoxes[i].Filled = false
+            end
+            local box = self._drawings.hitboxBoxes[i]
+            local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(hitbox.Position)
+            if onScreen then
+                box.Visible = true
+                box.Position = Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(hitbox.Size.X * 50, hitbox.Size.Y * 50)
+                box.Size = Vector2.new(hitbox.Size.X * 100, hitbox.Size.Y * 100)
+            else
+                box.Visible = false
+            end
+        end
+    end
+end
+
+function DebugVisuals:_UpdateBacktrack(target)
+    local visualData = self._backtrack:GetVisualData(target.Player)
+    local Drawing = Drawing or {}
+
+    for i, record in ipairs(visualData) do
+        if not self._drawings.backtrackDots[i] then
+            self._drawings.backtrackDots[i] = Drawing.new("Circle")
+            self._drawings.backtrackDots[i].Radius = 3
+            self._drawings.backtrackDots[i].Color = Color3.fromRGB(0, 255, 255)
+            self._drawings.backtrackDots[i].Filled = true
+            self._drawings.backtrackDots[i].Thickness = 1
+        end
+        local dot = self._drawings.backtrackDots[i]
+        local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(record.position)
+        if onScreen then
+            dot.Visible = true
+            dot.Position = Vector2.new(screenPos.X, screenPos.Y)
+        else
+            dot.Visible = false
+        end
+    end
+
+    for i = #visualData + 1, #self._drawings.backtrackDots do
+        self._drawings.backtrackDots[i].Visible = false
+    end
+end
+
+function DebugVisuals:_UpdatePrediction(target)
+end
+
+function DebugVisuals:_UpdateEvasionPath()
+end
+
+function DebugVisuals:_UpdateResolverText(target)
+    local drawing = self._drawings.resolverText
+    local pattern = self._resolver:GetPattern(target.Player)
+    drawing.Visible = true
+    drawing.Text = "Resolver: " .. pattern
+    local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(target.AliveState.RootPart.Position)
+    if onScreen then
+        drawing.Position = Vector2.new(screenPos.X, screenPos.Y - 30)
+    end
+end
+
+function DebugVisuals:_Hide(key)
+    if self._drawings[key] then self._drawings[key].Visible = false end
+end
+
+function DebugVisuals:_HideHitboxes()
+    for _, box in ipairs(self._drawings.hitboxBoxes) do box.Visible = false end
+end
+
+function DebugVisuals:_HideBacktrack()
+    for _, dot in ipairs(self._drawings.backtrackDots) do dot.Visible = false end
+end
+
+function DebugVisuals:_HideEvasionPath()
+    for _, line in ipairs(self._drawings.evasionPath) do line.Visible = false end
+end
+
+function DebugVisuals:HideAll()
+    for _, drawing in pairs(self._drawings) do
+        if type(drawing) == "table" and drawing.Visible ~= nil then
+            drawing.Visible = false
+        elseif type(drawing) == "table" then
+            for _, d in ipairs(drawing) do if d.Visible ~= nil then d.Visible = false end end
+        end
+    end
+end
+
+function DebugVisuals:Destroy()
+    self:HideAll()
+    self._trove:Destroy()
+end
+
+return DebugVisuals
+end
+
+tbl17.ragebot_DebugVisuals = function()
+local cache = tbl17.cache.ragebot_DebugVisuals
+if not cache then
+cache = { c = fn35() }
+tbl17.cache.ragebot_DebugVisuals = cache
+end
+return cache.c
+end
+end
+
 do -- jO
 local function fn35()
 tbl17.cJ()
@@ -63804,6 +64839,16 @@ local v126 = tbl17.k()
 local v127 = tbl17.jL()
 local v128 = tbl17.jM()
 local v129 = tbl17.jN()
+local v130 = tbl17.ragebot_Resolver()
+local v131 = tbl17.ragebot_Backtrack()
+local v132 = tbl17.ragebot_ProjectilePrediction()
+local v133 = tbl17.ragebot_PerlinNoise()
+local v134 = tbl17.ragebot_MultiPointHitbox()
+local v135 = tbl17.ragebot_VisibilityCheck()
+local v136 = tbl17.ragebot_DynamicFOV()
+local v137 = tbl17.ragebot_TriggerbotIntegration()
+local v138 = tbl17.ragebot_DebugVisuals()
+local fallenPartsDestroyHeight = workspace.FallenPartsDestroyHeight
 local fallenPartsDestroyHeight = workspace.FallenPartsDestroyHeight
 
 local function fn36()
