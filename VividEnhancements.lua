@@ -64950,22 +64950,59 @@ local clientCFrame = characterController:GetClientCFrame()
 local mode = v115.Data.Ragebot.Evasion.Mode
 local v130 = v128.getAction(innerContext)
 
+local target = arg._targetSelection:GetTarget()
+
+if target ~= nil then
+arg._lastTargetWorld = target.AliveState.RootPart.Position
+
+if v115.Data.Ragebot.Resolver.Enabled then
+local angles = target.AliveState.RootPart.Orientation
+arg._resolver:RecordAngles(target.Player, Vector2.new(angles.X, angles.Y), arg2)
+end
+
+if v115.Data.Ragebot.Backtrack.Enabled then
+arg._backtrack:Record(target.Player, {
+position = target.AliveState.RootPart.Position,
+hitboxes = {
+HitboxHead = target.AliveState.HitboxHead,
+HitboxBody = target.AliveState.HitboxBody,
+},
+time = os.clock(),
+tick = arg2
+})
+end
+
+if v115.Data.Ragebot.FOV.Dynamic.Enabled then
+local weapon = innerContext.ItemBehaviors:EquippedItemAsGun()
+local weaponType = weapon and weapon.Name or "Rifle"
+local distance = target and (target.AliveState.RootPart.Position - clientCFrame.Position).Magnitude or 0
+arg._dynamicFOV:Update(weaponType, distance, target ~= nil)
+end
+
+else
+arg._lastTargetWorld = nil
+end
+
 if mode == "Translocate" and arg._reloadGun == nil and (v130 == nil or v130.Type ~= "Reload") then
 arg:_ApplyForcedCrouch(v86[153])
 characterController:SetServerCFrame(v125.compute(clientCFrame, arg._targetSelection:HasTargets()))
 return
 end
 
-local target = arg._targetSelection:GetTarget()
-
-if target ~= nil then
-arg._lastTargetWorld = target.AliveState.RootPart.Position
-else
-arg._lastTargetWorld = nil
-end
-
 local v131 = arg:_Plan(arg2, v130, target, state.RootPart, clientCFrame, mode)
 arg:_ApplyPlan(v131, target, innerContext)
+
+if v115.Data.Ragebot.Debug.Enabled then
+arg._debugVisuals:Update(workspace.CurrentCamera, target, clientCFrame.Position)
+end
+
+if v115.Data.Ragebot.Triggerbot.Integrated and target then
+local crosshairHitbox = arg._targetSelection:SelectTarget(workspace.CurrentCamera, target, true)
+if arg._triggerbotIntegration:ShouldFire(crosshairHitbox, os.clock()) then
+if v131.WeaponAction then v131.WeaponAction() end
+end
+end
+
 local reloadGun = arg._reloadGun
 
 if reloadGun ~= nil and arg._reloadReadyAt == nil and arg._pendingDepletionAmmo == nil and not reloadGun:IsReloading() then
