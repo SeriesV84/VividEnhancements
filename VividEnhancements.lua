@@ -269,13 +269,12 @@ _datCtrl.Get = function(self, key)
                 if c and _isCosType(c) then _prx[k] = v end
             end
         end
-        return setmetatable(_prx, {
-            __index = function(t, k)
-                local c = _cosLib.Cosmetics[k]
-                if c and _isCosType(c) then return true end
-                return nil
+        for nm, cos in pairs(_cosLib.Cosmetics) do
+            if _isCosType(cos) and not _prx[nm] then
+                _prx[nm] = {Owned = true, Seed = math.random(1, 1000000)}
             end
-        })
+        end
+        return _prx
     end
     if key == "FavoritedCosmetics" then
         local _res = _val and table.clone(_val) or {}
@@ -285,6 +284,13 @@ _datCtrl.Get = function(self, key)
                 local c = _cosLib.Cosmetics[nm]
                 if c and _isCosType(c) then
                     _res[wep][nm] = isFav
+                end
+            end
+        end
+        for nm, cos in pairs(_cosLib.Cosmetics) do
+            if _isCosType(cos) then
+                for wep, _ in pairs(_res) do
+                    _res[wep][nm] = _res[wep][nm] or false
                 end
             end
         end
