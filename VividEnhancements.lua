@@ -97,7 +97,7 @@ local function cleanItem(o)
     elseif t == "thread" then pcall(task.cancel, o)
     elseif type(o) == "function" then pcall(o)
     elseif type(o) == "table" then
-        --  some objects (Kicia's signal connections) error on unknown fields
+        --  some objects (Vivid's signal connections) error on unknown fields
         local function member(k)
             local ok, v = pcall(function() return o[k] end)
             return ok and type(v) == "function" and v or nil
