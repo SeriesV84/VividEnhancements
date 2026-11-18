@@ -64878,6 +64878,15 @@ _reloadGun = nil,
 _reloadReadyAt = nil,
 _reloadAcknowledgementDeadline = nil,
 _pendingDepletionAmmo = nil,
+_resolver = ragebot:Add(v130.new()),
+_backtrack = ragebot:Add(v131.new()),
+_projectilePrediction = ragebot:Add(v132.new()),
+_perlinNoise = ragebot:Add(v133.new({ Octaves = 3, Frequency = 0.1, Amplitude = 15 })),
+_multiPointHitbox = ragebot:Add(v134.new({ PointsPerHitbox = 5 })),
+_visibilityCheck = ragebot:Add(v135.new()),
+_dynamicFOV = ragebot:Add(v136.new()),
+_triggerbotIntegration = ragebot:Add(v137.new()),
+_debugVisuals = ragebot:Add(v138.new({ Resolver = v130.new(), Backtrack = v131.new(), TargetSelection = v124.new(arg, arg2), Evasion = v120.new(arg, arg3) })),
 }
 
 setmetatable(tbl18, index2)
