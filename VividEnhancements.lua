@@ -18105,7 +18105,7 @@ v144.Parent = v126.CoreGui
 end
 
 setthreadidentity(v143)
-local tbl18 = { Title = obj.Title, Icon = obj.Icon, Username = obj._watermarkUsername }
+local tbl18 = { Title = "Vivid Enhancements | Dev Build", Icon = obj.Icon, Username = obj._watermarkUsername }
 
 obj._chrome = {
 Window = v134.new(obj:View(), v138, v136, tbl18),
