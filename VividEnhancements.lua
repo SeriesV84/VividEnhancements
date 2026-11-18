@@ -633,7 +633,7 @@ end
 --  back to Linear movement without them.
 tbl17.ca = function() return nil end
 
---  hH: weather emitter specs and lightning / thunder constants. Kicia's own
+--  hH: weather emitter specs and lightning / thunder constants. Vivid's own
 --  values are not in the dump; these fit every field the weather module reads
 --  and use particle textures that ship with Roblox.
 do
@@ -681,7 +681,7 @@ do
 end
 
 --  iQ: the Visuals > Player ESP page. Its builder is lost; rebuilt with the
---  same menu calls Kicia's other pages use, over Kicia's own Esp settings.
+--  same menu calls Vivid's other pages use, over Vivid's own Esp settings.
 tbl17.iQ = function()
     return function(_, _, grid)
         local enable = tbl17.h6()
