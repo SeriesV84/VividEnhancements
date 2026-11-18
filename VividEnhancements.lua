@@ -796,7 +796,7 @@ tbl17.eZ = function()
     end
     return Offline
 end
---  Kicia's own modules, lifted from the dump (extract.py). Do not edit by hand.
+--  Vivid's own modules, lifted from the dump (extract.py). Do not edit by hand.
 do -- a
 local function fn35()
 return {
