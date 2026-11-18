@@ -65174,6 +65174,13 @@ end
 if arg3 == "ProjectileBreaker" then
 return { CFrame = arg._projectileBreakerTeleport:Compute(arg2), ShouldSkipDefense = v86[34] }
 end
+
+if arg3 == "PerlinNoise" then
+local perlinOffset = arg._perlinNoise:GetOffset(os.clock(), arg2.Position)
+local newCFrame = arg2 * CFrame.new(perlinOffset)
+return { CFrame = newCFrame, ShouldSkipDefense = v86[34] }
+end
+
 return { CFrame = v121.compute(arg2) }
 end
 
