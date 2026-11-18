@@ -713,7 +713,7 @@ look:AddTextBox({ Label = "Rank Icon", Config = P("RankSpoof", "Icon") })
         local function side(title, key, where)
             local s = grid:AddSection({ Title = title, Side = where })
             local function Q(...) return P(key, ...) end
-            --  Kicia's ESP draws a side only when Main AND this side are enabled
+            --  Vivid's ESP draws a side only when Main AND this side are enabled
             enable(s, "Enable " .. title .. " ESP", { "Always", "Toggle", "Hold" }, P(key), true)
             local function color(label, path, transparency)
                 local t = s:AddToggle({ Label = label, Config = Q(path, "Enabled") })
