@@ -66965,7 +66965,7 @@ do
         local path = "kiciarebuild/lithium_logo.png"
         local _ok = pcall(wrf, path, decode(LITHIUM_LOGO_B64))
         local _ok2, _id = pcall(gca, path)
-        --  Kicia's original logo is used; the Lithium one is no longer applied.
+        --  Vivid's original logo is used; the Lithium one is no longer applied.
     end
 end
 
