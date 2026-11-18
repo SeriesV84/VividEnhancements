@@ -1,11 +1,11 @@
-if getgenv().KiciaRebuild and getgenv().KiciaRebuild.Unload then
-    pcall(getgenv().KiciaRebuild.Unload)
+if getgenv().VividEnhancements and getgenv().VividEnhancements.Unload then
+    pcall(getgenv().VividEnhancements.Unload)
 end
 if not game:IsLoaded() then game.Loaded:Wait() end
-print("[Kicia] script file executing, PlaceId=" .. tostring(game.PlaceId))
+print("[Vivid Enhancements | Dev Build] script file executing, PlaceId=" .. tostring(game.PlaceId))
 
 local K: { [string]: any } = { connections = {}, cleanups = {}, destroyed = false }
-getgenv().KiciaRebuild = K
+getgenv().VividEnhancements = K
 
 local Players = game:GetService("Players")
 local _ReplicatedStorage = game:GetService("ReplicatedStorage")
