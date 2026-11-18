@@ -43,6 +43,7 @@ VividEnhancements.Name = "VividEnhancements"
 VividEnhancements.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 VividEnhancements.ResetOnSpawn = false
 VividEnhancements.IgnoreGuiInset = true
+VividEnhancements.DisplayOrder = 999999
 
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = VividEnhancements
@@ -338,7 +339,7 @@ local scripts = {
 }
 
 local function playClick()
-	clickSound:Play()
+	pcall(function() clickSound:Play() end)
 end
 
 local function switchTab(tabName)
@@ -600,6 +601,19 @@ SettingsScroll.CanvasSize = UDim2.new(0, 0, 0, 220)
 
 updateLineNumbers()
 
-VividEnhancements.Parent = game:GetService("CoreGui")
+local parentGui = nil
+pcall(function()
+	parentGui = game:GetService("CoreGui")
+end)
+if not parentGui then
+	pcall(function()
+		parentGui = LocalPlayer:WaitForChild("PlayerGui")
+	end)
+end
+if not parentGui then
+	parentGui = game:GetService("StarterGui")
+end
+
+VividEnhancements.Parent = parentGui
 
 print("Vivid Enhancements loaded. Click the yellow orb to open.")
